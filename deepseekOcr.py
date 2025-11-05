@@ -1,47 +1,62 @@
-from transformers import AutoTokenizer, AutoModel
-import torch
+from vllm import LLM, SamplingParams
+from vllm.model_executor.models.deepseek_ocr import NGramPerReqLogitsProcessor
 from PIL import Image
+from transformers import AutoModel, AutoTokenizer
+import torch
+import os
 
-print("🔹 Loading DeepSeek-OCR model...")
+model_name = 'deepseek-ai/DeepSeek-OCR'
 
-device = "cpu"  # always CPU locally, Modal GPU will override
+tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+model = AutoModel.from_pretrained(model_name, _attn_implementation='flash_attention_2', trust_remote_code=True, use_safetensors=True)
+model = model.eval().cuda().to(torch.bfloat16)
 
-tokenizer = AutoTokenizer.from_pretrained(
-    "deepseek-ai/DeepSeek-OCR",
-    trust_remote_code=True
+# prompt = "<image>\nFree OCR. "
+prompt = "<image>\n<|grounding|>Convert the document to markdown. "
+image_file = 'your_image.jpg'
+output_path = 'your/output/dir'
+
+res = model.infer(tokenizer, prompt=prompt, image_file=image_file, output_path = output_path, base_size = 1024, image_size = 640, crop_mode=True, save_results = True, test_compress = True)
+
+# Create model instance
+llm = LLM(
+    model="deepseek-ai/DeepSeek-OCR",
+    enable_prefix_caching=False,
+    mm_processor_cache_gb=0,
+    logits_processors=[NGramPerReqLogitsProcessor]
 )
 
-model = AutoModel.from_pretrained(
-    "deepseek-ai/DeepSeek-OCR",
-    trust_remote_code=True,
-    torch_dtype=torch.float32,
-    low_cpu_mem_usage=True
-).to(device).eval()
+# Prepare batched input with your image file
+image_1 = Image.open(r"C:/Users/katie/Downloads/IC3Report_page28.png").convert("RGB")
+image_2 = Image.open(r"C:/Users/katie/Downloads/IC3Report_page29.png").convert("RGB")
+prompt = "<image>\nFree OCR."
 
-print(f"Model loaded on {device.upper()}")
+model_input = [
+    {
+        "prompt": prompt,
+        "multi_modal_data": {"image": image_1}
+    },
+    {
+        "prompt": prompt,
+        "multi_modal_data": {"image": image_2}
+    }
+]
 
-# Batching
-def infer_batch(images, prompt="<image>\n<|grounding|>Convert the document to markdown. "):
-    """
-    images: list of PIL.Image objects
-    Returns list of OCR text outputs.
-    """
-    results = []
-
-    for img in images:
-        # Each image is processed individually
-        output_path = None  
-        text = model.infer(
-            tokenizer,
-            prompt=prompt,
-            image_file=img,   
-            output_path=output_path,
-            base_size=1024,
-            image_size=640,
-            crop_mode=True,
-            save_results=False,
-            test_compress=False
+sampling_param = SamplingParams(
+            temperature=0.0,
+            max_tokens=8192,
+            # ngram logit processor args
+            extra_args=dict(
+                ngram_size=30,
+                window_size=90,
+                whitelist_token_ids={128821, 128822},  # whitelist: <td>, </td>
+            ),
+            skip_special_tokens=False,
         )
-        results.append(text)
+# Generate output
+model_outputs = llm.generate(model_input, sampling_param)
 
-    return results
+# Print output
+for output in model_outputs:
+    print(output.outputs[0].text)
+
