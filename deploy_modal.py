@@ -22,7 +22,7 @@ if not deepseek_local_path.exists():
 image = (
     modal.Image.debian_slim(python_version="3.10")  
     .apt_install("poppler-utils")  
-    .pip_install(
+    .uv_pip_install(
         "fastapi",
         "uvicorn",
         "pdf2image",
