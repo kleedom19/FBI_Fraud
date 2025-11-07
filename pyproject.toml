@@ -5,52 +5,50 @@ description = "A final project for DTSC 3602 looking at fraud detection from the
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "beautifulsoup4>=4.14.2",
-    "google-generativeai>=0.8.5",
-    "ipykernel>=6.31.0",
-    "jupyter>=1.1.1",
-    "pandas>=2.3.3",
-    "pdfplumber>=0.11.7",
-    "pypdf>=6.1.3",
-    "python-dotenv>=1.2.1",
+    # Modal deployment dependencies
+    "modal>=0.64.0",
+    
+    # DeepSeek-OCR core dependencies
+    "transformers>=4.44.2,<4.46",
+    "torch>=2.3.0",
+    "safetensors>=0.4.0",
+    "accelerate>=0.20.0",
+    "Pillow>=10.0.0",
+    
+    # FastAPI web framework
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "python-multipart>=0.0.6",
+    
+    # PDF processing
+    "pdf2image>=1.16.0",
+    
+    # Configuration
+    "python-dotenv>=1.0.0",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["."]
 
-dependencies = [
-    # Core dependencies
-    "google-generativeai>=0.8.0",
-    "python-dotenv>=1.0.0",
-    
-    # Data processing
-    "pandas>=2.0.0",
-    "beautifulsoup4>=4.12.0",
-    "pypdf>=4.0.0",
-    "pdfplumber>=0.10.0",
-    
-    # ML/AI dependencies
-    "transformers>=4.30.0",
-    "torch>=2.0.0",
-    "vllm>=0.4.0",
-    "Pillow>=10.0.0",
-    
-    # Jupyter notebook support
-    "ipykernel>=6.25.0",
-    "ipywidgets>=8.0.0",
-    "jupyter>=1.0.0",
-    
-    # Utilities
-    "tqdm>=4.65.0",
-]
-
 [project.optional-dependencies]
+# Development tools
 dev = [
     "pytest>=7.0.0",
     "black>=23.0.0",
     "isort>=5.12.0",
     "flake8>=6.0.0",
     "mypy>=1.5.0",
+]
+
+# Data analysis (for notebooks/local dev, not for Modal deployment)
+analysis = [
+    "jupyter>=1.0.0",
+    "ipykernel>=6.25.0",
+    "pandas>=2.0.0",
+    "beautifulsoup4>=4.12.0",
+    "google-generativeai>=0.8.0",
+    "pdfplumber>=0.10.0",
+    "pypdf>=4.0.0",
 ]
 
 [build-system]

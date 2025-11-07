@@ -1,7 +1,6 @@
 import modal
 from pathlib import Path
 import os
-import uvicorn
 
 
 # Modal App Definition
@@ -54,23 +53,17 @@ def check_secrets():
     image=image,
     secrets=[modal.Secret.from_name("deepseek-secrets")],
     gpu="A10G",                
-    min_containers=1,           
-    max_containers=2,           
+    container_idle_timeout=300,  # Keep container warm for 5 minutes
     timeout=600,                
 )
-@modal.fastapi_endpoint()       
+@modal.asgi_app()
 def serve():
-    """Runs the DeepSeek-OCR FastAPI server on Modal."""
-    token_id = os.getenv("TOKEN_ID")
-    token_secret = os.getenv("TOKEN_SECRET")
-
-    print("Starting DeepSeek OCR endpoint...")
-    print(f"Using token: {token_id[:4]}****")
-
-    # Run FastAPI with Uvicorn
-    uvicorn.run(
-        "ocr_endpoint:app",
-        host="0.0.0.0",
-        port=8000,
-        log_level="info",
-    )
+    """Returns the DeepSeek-OCR FastAPI app for Modal to serve."""
+    import sys
+    sys.path.insert(0, "/root")
+    
+    from ocr_endpoint import app as fastapi_app
+    
+    print("DeepSeek OCR endpoint initialized successfully!")
+    
+    return fastapi_app
