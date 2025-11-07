@@ -1,6 +1,6 @@
 <h1>What we have done</h1>
 
-I have the modal code from HuggingFace's website loaded with 2 images from the PDF we want to analyze, and then the Modal endpoint code that Jacob made. 
+I have the model code from HuggingFace's website loaded with 2 images from the PDF we want to analyze, and then the Modal endpoint code that Jacob made. 
 I did discover that no actual app or token was created, so I went ahead and created this on my Modal account and connected it through VS Code via terminal.
 The idea is for Modal to use our local files 'deepseekOcr.py', which as the modal code in it, and 'ocr_endpoint.py', which has the FastAPI app that Jacob made, and use
 them in deployment. I have seen videos of the demo, and it looks like it should load a screen that allows you to put pdf's in? 
