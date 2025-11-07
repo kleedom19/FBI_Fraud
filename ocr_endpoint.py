@@ -8,6 +8,9 @@ from deepseekOcr import model, tokenizer
 from pathlib import Path
 import tempfile
 
+TOKEN_ID = os.getenv("TOKEN_ID")
+TOKEN_SECRET = os.getenv("TOKEN_SECRET")
+
 app = FastAPI(title="Deepseek OCR Modal Endpoint")
 
 @app.post("/ocr/pdf")
