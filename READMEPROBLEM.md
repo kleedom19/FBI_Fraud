@@ -8,6 +8,9 @@ them in deployment. I have seen videos of the demo, and it looks like it should 
 I understand a few of the errors saying that I have to change a few of the commands to more updated versions, but I don't understand the other chunk.
 <br> 
 My modal also keeps sending me emails saying that I have crashed it too many times, so it won't run function cells.
+<br>
+<br>
+Current issues: Modal seems to REALLY want to use vllm, but it will not let me install it properly in VS Code. Modal also does not seem to like it. I have asked Chat, and it has said that it could be due to the modal trying to use CUDA GPU regardless of telling it to use Modal's CPU instead? Other than that, we can get a link to click on in the terminal, but it crashes, so the website only spins without loading any content.
 
 
 <h1>These are the current errors I am getting from Modal:</h1>
