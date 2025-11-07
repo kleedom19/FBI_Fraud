@@ -23,17 +23,29 @@ image = (
     modal.Image.debian_slim(python_version="3.10")  
     .apt_install("poppler-utils")  
     .uv_pip_install(
+        # FastAPI web framework
         "fastapi",
         "uvicorn",
+        "python-multipart",
+        # PDF and image processing
         "pdf2image",
         "pillow",
-        "transformers>=4.44.2,<4.46",
-        "torch>=2.3",
+        # PyTorch and vision
+        "torch==2.6.0",
         "torchvision>=0.18.0",
+        # Transformers and tokenizers
+        "transformers==4.46.3",
+        "tokenizers==0.20.3",
+        # Model dependencies
         "safetensors>=0.4",
         "accelerate",
-        "python-multipart",
+        "einops",
+        # Config helpers
         "addict>=2.4.0",
+        "easydict",
+    )
+    .run_commands(
+        "uv add flash-attn==2.7.3 --no-build-isolation"
     )
     .add_local_file(ocr_script_local_path, ocr_script_remote_path)
     .add_local_file(deepseek_local_path, deepseek_path_remote)
