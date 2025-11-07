@@ -29,9 +29,11 @@ image = (
         "pillow",
         "transformers>=4.44.2,<4.46",
         "torch>=2.3",
+        "torchvision>=0.18.0",
         "safetensors>=0.4",
         "accelerate",
-        "python-multipart",  
+        "python-multipart",
+        "addict>=2.4.0",
     )
     .add_local_file(ocr_script_local_path, ocr_script_remote_path)
     .add_local_file(deepseek_local_path, deepseek_path_remote)
