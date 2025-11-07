@@ -3,6 +3,8 @@ from pathlib import Path
 import os
 import uvicorn
 
+
+# Modal App Definition
 app = modal.App("deepseek-ocr")
 
 # Paths
@@ -15,11 +17,12 @@ deepseek_path_remote = "/root/deepseekOcr.py"
 if not ocr_script_local_path.exists():
     raise RuntimeError("Missing ocr_endpoint.py — check your file path.")
 if not deepseek_local_path.exists():
-    raise RuntimeError("Missing local deepseekOcr file — check your file path.")
+    raise RuntimeError("Missing deepseekOcr.py — check your file path.")
 
-# Build Modal image
+# Build Modal Image
 image = (
-    modal.Image.debian_slim(python_version="3.9")
+    modal.Image.debian_slim(python_version="3.10")  
+    .apt_install("poppler-utils")  
     .pip_install(
         "fastapi",
         "uvicorn",
@@ -29,34 +32,45 @@ image = (
         "torch>=2.3",
         "safetensors>=0.4",
         "accelerate",
+        "python-multipart",  
     )
     .add_local_file(ocr_script_local_path, ocr_script_remote_path)
-    .add_local_file(deepseek_local_path, deepseek_path_remote)  # <-- corrected line
+    .add_local_file(deepseek_local_path, deepseek_path_remote)
 )
 
-# Optional helper function to check secrets
+# Optional Secret Test Function
 @app.function(secrets=[modal.Secret.from_name("deepseek-secrets")])
-def some_function():
+def check_secrets():
     token_id = os.getenv("TOKEN_ID")
     token_secret = os.getenv("TOKEN_SECRET")
-    print("TOKEN_ID (masked):", token_id[:4] + "****")
-    print("TOKEN_SECRET (masked):", token_secret[:4] + "****")
-    return {"token_id": token_id, "token_secret": token_secret}
+    if not token_id or not token_secret:
+        raise RuntimeError("Missing TOKEN_ID or TOKEN_SECRET in secrets.")
+    print(f"TOKEN_ID starts with: {token_id[:4]}****")
+    print(f"TOKEN_SECRET starts with: {token_secret[:4]}****")
+    return {"ok": True}
 
-# Main OCR FastAPI server
+# FastAPI OCR Server
 @app.function(
     image=image,
     secrets=[modal.Secret.from_name("deepseek-secrets")],
-    concurrency_limit=50,  # max concurrent requests
+    gpu="A10G",                
+    min_containers=1,           
+    max_containers=2,           
+    timeout=600,                
 )
-@modal.concurrent(max_inputs=50)
-@modal.web_server(8000)
-def run():
-    """Start the OCR FastAPI app on port 8000"""
+@modal.fastapi_endpoint()       
+def serve():
+    """Runs the DeepSeek-OCR FastAPI server on Modal."""
     token_id = os.getenv("TOKEN_ID")
     token_secret = os.getenv("TOKEN_SECRET")
-    
-    print("Loaded tokens:", token_id[:4] + "****")  # sanity check
 
-    # Run uvicorn directly instead of subprocess
-    uvicorn.run("ocr_endpoint:app", host="0.0.0.0", port=8000)
+    print("Starting DeepSeek OCR endpoint...")
+    print(f"Using token: {token_id[:4]}****")
+
+    # Run FastAPI with Uvicorn
+    uvicorn.run(
+        "ocr_endpoint:app",
+        host="0.0.0.0",
+        port=8000,
+        log_level="info",
+    )
