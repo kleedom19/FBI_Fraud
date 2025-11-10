@@ -105,10 +105,10 @@ def main():
     # Configuration
     # Replace this with your actual Modal endpoint URL after deployment
     # Example: "https://your-workspace--deepseek-ocr-serve.modal.run"
-    BASE_URL = "YOUR_MODAL_ENDPOINT_URL_HERE"
+    BASE_URL = "https://kleedom--deepseek-ocr-serve.modal.run"
     
     # Check if URL is configured
-    if BASE_URL == "YOUR_MODAL_ENDPOINT_URL_HERE":
+    if BASE_URL == "https://kleedom--deepseek-ocr-serve.modal.run":
         print("\n⚠️  WARNING: Please update BASE_URL with your Modal endpoint URL")
         print("   After deploying, run: modal deploy deploy_modal.py")
         print("   Then copy the URL and paste it into this script")

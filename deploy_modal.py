@@ -18,10 +18,16 @@ if not ocr_script_local_path.exists():
 if not deepseek_local_path.exists():
     raise RuntimeError("Missing deepseekOcr.py — check your file path.")
 
+cuda_version = "11.8"  # should be no greater than host CUDA version
+flavor = "devel"  # includes full CUDA toolkit
+operating_sys = "ubuntu24.04"
+tag = f"{cuda_version}-{flavor}-{operating_sys}"
+HF_CACHE_PATH = "/cache"
+
 # Build Modal Image
 image = (
-    modal.Image.debian_slim(python_version="3.10")  
-    .apt_install("poppler-utils")  
+    modal.Image.from_registry("nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04", add_python="3.12") 
+    .apt_install("poppler-utils","git","build-essential")  
     .uv_pip_install(
         # FastAPI web framework
         "fastapi",
@@ -43,10 +49,14 @@ image = (
         # Config helpers
         "addict>=2.4.0",
         "easydict",
+        "wheel",
+        "setuptools",
+        "hf_transfer",
     )
     .run_commands(
-        "uv add flash-attn==2.7.3 --no-build-isolation"
+        "pip install flash-attn==2.7.3 --no-build-isolation"
     )
+    .env({"HF_HUB_CACHE": HF_CACHE_PATH, "HF_HUB_ENABLE_HF_TRANSFER": "1", "PMIX_MCA_gds": "hash"})
     .add_local_file(ocr_script_local_path, ocr_script_remote_path)
     .add_local_file(deepseek_local_path, deepseek_path_remote)
 )

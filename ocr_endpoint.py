@@ -76,25 +76,82 @@ async def ocr_pdf(file: UploadFile = File(...)):
                     img.save(image_path, "PNG")
 
                     prompt = "<image>\n<|grounding|>Convert the document to markdown. "
-                    output_path = os.path.join(tmpdir, f"page_{i}_output")
+                    output_dir = os.path.join(tmpdir, f"page_{i}_output")
 
-                    # Run OCR inference
-                    model.infer(
+                    # Run OCR inference - capture the return value
+                    print(f"🔍 Processing page {i}...")
+                    ocr_result = model.infer(
                         tokenizer,
                         prompt=prompt,
                         image_file=image_path,
-                        output_path=output_path,
+                        output_path=output_dir,
                         base_size=1024,
                         image_size=640,
                         crop_mode=True,
                         save_results=True,
                         test_compress=True
                     )
+                    print(f"✅ OCR inference completed for page {i}")
+                    
+                    # First, try to use the returned value if it exists
+                    if ocr_result and isinstance(ocr_result, str) and ocr_result.strip():
+                        print(f"📄 Using OCR result from return value (length: {len(ocr_result)})")
+                        results.append({
+                            "page": i,
+                            "text": ocr_result.strip(),
+                            "status": "success"
+                        })
+                        continue
 
-                    # Read results
-                    output_file = Path(output_path)
-                    if output_file.exists():
-                        with open(output_file, "r", encoding="utf-8") as f:
+                    # If no return value, read from the output directory
+                    print(f"📁 Reading from output directory: {output_dir}")
+                    output_path = Path(output_dir)
+                    
+                    # The model creates a directory with result files
+                    if output_path.exists() and output_path.is_dir():
+                        # DeepSeek-OCR typically creates files with specific names
+                        # Look for any text-like files in the directory
+                        all_files = list(output_path.rglob("*"))
+                        
+                        # Filter for actual files (not directories)
+                        text_files = [f for f in all_files if f.is_file()]
+                        
+                        # Try to find the markdown/text content
+                        markdown_content = None
+                        
+                        for file_path in text_files:
+                            try:
+                                # Read the file
+                                with open(file_path, "r", encoding="utf-8") as f:
+                                    content = f.read().strip()
+                                    
+                                    # If content exists and looks like markdown/text, use it
+                                    if content:
+                                        markdown_content = content
+                                        print(f"✅ Found OCR output in: {file_path.name}")
+                                        break
+                            except Exception as e:
+                                print(f"⚠️ Could not read {file_path.name}: {e}")
+                                continue
+                        
+                        if markdown_content:
+                            results.append({
+                                "page": i,
+                                "text": markdown_content,
+                                "status": "success"
+                            })
+                        else:
+                            # Debug: show what files exist
+                            file_list = [f.name for f in text_files[:10]]
+                            results.append({
+                                "page": i,
+                                "text": "",
+                                "status": "error",
+                                "error": f"No readable content found. Files in directory: {file_list}"
+                            })
+                    elif output_path.exists() and output_path.is_file():
+                        # If it's a single file, read it
+                        with open(output_path, "r", encoding="utf-8") as f:
                             results.append({
                                 "page": i,
                                 "text": f.read(),
@@ -105,7 +162,7 @@ async def ocr_pdf(file: UploadFile = File(...)):
                             "page": i,
                             "text": "",
                             "status": "error",
-                            "error": "OCR output file not found"
+                            "error": f"Output path does not exist: {output_dir}"
                         })
                         
                 except Exception as e:
