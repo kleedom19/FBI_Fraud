@@ -52,6 +52,11 @@ image = (
         "wheel",
         "setuptools",
         "hf_transfer",
+        # Gemini API
+        "google-generativeai",
+        # Supabase
+        "supabase",
+        "python-dotenv",
     )
     .run_commands(
         "pip install flash-attn==2.7.3 --no-build-isolation"
@@ -66,18 +71,32 @@ image = (
 def check_secrets():
     token_id = os.getenv("TOKEN_ID")
     token_secret = os.getenv("TOKEN_SECRET")
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_KEY")
+    
     if not token_id or not token_secret:
         raise RuntimeError("Missing TOKEN_ID or TOKEN_SECRET in secrets.")
+    if not gemini_key:
+        raise RuntimeError("Missing GEMINI_API_KEY in secrets.")
+    if not supabase_url or not supabase_key:
+        raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY in secrets.")
+    
     print(f"TOKEN_ID starts with: {token_id[:4]}****")
     print(f"TOKEN_SECRET starts with: {token_secret[:4]}****")
+    print(f"GEMINI_API_KEY starts with: {gemini_key[:4]}****")
+    print(f"SUPABASE_URL: {supabase_url[:20]}****")
     return {"ok": True}
 
 # FastAPI OCR Server
 @app.function(
     image=image,
-    secrets=[modal.Secret.from_name("deepseek-secrets")],
+    secrets=[
+        modal.Secret.from_name("deepseek-secrets"),
+        modal.Secret.from_name("gemini-supabase-secrets")
+    ],
     gpu="A10G",                
-    container_idle_timeout=300,  # Keep container warm for 5 minutes
+    scaledown_window=300,  # Keep container warm for 5 minutes
     timeout=600,                
 )
 @modal.asgi_app()
@@ -89,5 +108,6 @@ def serve():
     from ocr_endpoint import app as fastapi_app
     
     print("DeepSeek OCR endpoint initialized successfully!")
+    print("Gemini and Supabase integration ready!")
     
     return fastapi_app

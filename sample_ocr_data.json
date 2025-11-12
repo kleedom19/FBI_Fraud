@@ -1,0 +1,17 @@
+{
+  "filename": "sample_document.pdf",
+  "total_pages": 2,
+  "results": [
+    {
+      "page": 1,
+      "text": "# Sample Document\n\nThis is a test page with some content.\n\n- Item 1\n- Item 2\n- Item 3",
+      "status": "success"
+    },
+    {
+      "page": 2,
+      "text": "# Page 2\n\nMore test content here.\n\nSome additional text for testing purposes.",
+      "status": "success"
+    }
+  ]
+}
+

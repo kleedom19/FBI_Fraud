@@ -57,6 +57,15 @@ def test_ocr_endpoint(base_url: str, pdf_path: str):
             print(f"   - Filename: {result['filename']}")
             print(f"   - Total pages: {result['total_pages']}")
             
+            # Check if Gemini formatting and Supabase saving happened
+            if 'formatted_json' in result:
+                print(f"   - Gemini formatting: ✅ Completed")
+            if 'supabase_saved' in result:
+                status = "✅ Saved" if result['supabase_saved'] else "❌ Failed"
+                print(f"   - Supabase storage: {status}")
+                if not result['supabase_saved'] and 'supabase_error' in result:
+                    print(f"     Error: {result['supabase_error']}")
+            
             # Display results for each page
             for page_result in result['results']:
                 page_num = page_result['page']
