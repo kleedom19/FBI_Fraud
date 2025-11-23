@@ -1,0 +1,14 @@
+{
+  "filename": "2020agedata.pdf",
+  "total_pages": 1,
+  "results": [
+    {
+      "page": 1,
+      "text": "# 2020 VICTIMS BY AGE GROUP\n\n\n\n<table><tr><td colspan=\"3\">Victims</td></tr><tr><td>Age Range7</td><td>Total Count</td><td>Total Loss</td></tr><tr><td>Under 20</td><td>23,186</td><td>&#36;70,980,763</td></tr><tr><td>20-29</td><td>70,791</td><td>&#36;197,402,240</td></tr><tr><td>30-39</td><td>88,364</td><td>&#36;492,176,845</td></tr><tr><td>40-49</td><td>91,568</td><td>&#36;717,161,726</td></tr><tr><td>50-59</td><td>85,967</td><td>&#36;847,948,101</td></tr><tr><td>Over 60</td><td>105,301</td><td>&#36;966,062,236</td></tr></table>\n\n\n7 Not all complaints include an associated age range—those without this information are excluded from this table. Please see Appendix B for more information regarding IC3 data.",
+      "status": "success"
+    }
+  ],
+  "formatted_json": "{\n  \"filename\": \"2020agedata.pdf\",\n  \"total_pages\": 1,\n  \"results\": [\n    {\n      \"page\": 1,\n      \"text\": \"# 2020 VICTIMS BY AGE GROUP\",\n      \"status\": \"success\",\n      \"data\": {\n        \"title\": \"2020 VICTIMS BY AGE GROUP\",\n        \"table\": {\n          \"headers\": [\n            \"Age Range\",\n            \"Total Count\",\n            \"Total Loss\"\n          ],\n          \"rows\": [\n            {\n              \"Age Range\": \"Under 20\",\n              \"Total Count\": 23186,\n              \"Total Loss\": 70980763\n            },\n            {\n              \"Age Range\": \"20-29\",\n              \"Total Count\": 70791,\n              \"Total Loss\": 197402240\n            },\n            {\n              \"Age Range\": \"30-39\",\n              \"Total Count\": 88364,\n              \"Total Loss\": 492176845\n            },\n            {\n              \"Age Range\": \"40-49\",\n              \"Total Count\": 91568,\n              \"Total Loss\": 717161726\n            },\n            {\n              \"Age Range\": \"50-59\",\n              \"Total Count\": 85967,\n              \"Total Loss\": 847948101\n            },\n            {\n              \"Age Range\": \"Over 60\",\n              \"Total Count\": 105301,\n              \"Total Loss\": 966062236\n            }\n          ]\n        },\n        \"notes\": \"7 Not all complaints include an associated age range—those without this information are excluded from this table. Please see Appendix B for more information regarding IC3 data.\"\n      }\n    }\n  ]\n}",
+  "supabase_saved": false,
+  "supabase_error": "[Errno -2] Name or service not known (Check SUPABASE_URL format: should be 'https://your-project.supabase.co')"
+}

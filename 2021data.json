@@ -1,0 +1,14 @@
+{
+  "filename": "2021agedata.pdf",
+  "total_pages": 1,
+  "results": [
+    {
+      "page": 1,
+      "text": "## 2021 Victims by Age Group<sup>17</sup>  \n\n![](images/0.jpg)",
+      "status": "success"
+    }
+  ],
+  "formatted_json": "{\n  \"filename\": \"2021agedata.pdf\",\n  \"total_pages\": 1,\n  \"results\": [\n    {\n      \"page\": 1,\n      \"text\": \"## 2021 Victims by Age Group<sup>17</sup>  \\n\\n![](images/0.jpg)\",\n      \"status\": \"success\"\n    }\n  ]\n}",
+  "supabase_saved": false,
+  "supabase_error": "[Errno -2] Name or service not known (Check SUPABASE_URL format: should be 'https://your-project.supabase.co')"
+}
