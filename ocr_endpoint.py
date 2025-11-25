@@ -6,9 +6,14 @@ import os
 from pathlib import Path
 import tempfile
 import json
-import google.generativeai as genai
-from supabase import create_client, Client
-from datetime import datetime
+from gemini_supabase import (
+    get_gemini_model,
+    get_supabase_client,
+    format_with_gemini,
+    convert_to_dataframe,
+    save_to_supabase,
+    check_cache
+)
 
 app = FastAPI(
     title="DeepSeek OCR API",
@@ -32,164 +37,7 @@ def get_model():
 TOKEN_ID = os.getenv("TOKEN_ID")
 TOKEN_SECRET = os.getenv("TOKEN_SECRET")
 
-# Initialize Gemini and Supabase clients
-_gemini_model = None
-_supabase_client = None
-
-def get_gemini_model():
-    """Lazy load Gemini model."""
-    global _gemini_model
-    if _gemini_model is None:
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            raise RuntimeError("GEMINI_API_KEY not found in environment variables")
-        genai.configure(api_key=api_key)
-        _gemini_model = genai.GenerativeModel('gemini-2.0-flash-lite-001')
-    return _gemini_model
-
-def get_supabase_client():
-    """Lazy load Supabase client with URL validation."""
-    global _supabase_client
-    if _supabase_client is None:
-        supabase_url = os.getenv("SUPABASE_URL")
-        supabase_key = os.getenv("SUPABASE_KEY")
-        
-        if not supabase_url or not supabase_key:
-            raise RuntimeError("SUPABASE_URL or SUPABASE_KEY not found in environment variables")
-        
-        # Validate and clean URL
-        supabase_url = supabase_url.strip()
-        
-        # Remove trailing slash if present
-        if supabase_url.endswith('/'):
-            supabase_url = supabase_url[:-1]
-        
-        # Validate URL format
-        if not supabase_url.startswith('https://'):
-            raise ValueError(
-                f"Invalid SUPABASE_URL format: '{supabase_url}'. "
-                "URL must start with 'https://' (e.g., 'https://your-project.supabase.co')"
-            )
-        
-        if '.supabase.co' not in supabase_url:
-            raise ValueError(
-                f"Invalid SUPABASE_URL format: '{supabase_url}'. "
-                "URL should be in format: 'https://your-project-id.supabase.co'"
-            )
-        
-        # Validate key is not empty
-        supabase_key = supabase_key.strip()
-        if not supabase_key:
-            raise ValueError("SUPABASE_KEY cannot be empty")
-        
-        try:
-            _supabase_client = create_client(supabase_url, supabase_key)
-        except Exception as e:
-            raise RuntimeError(
-                f"Failed to create Supabase client. URL: '{supabase_url[:30]}...', Error: {str(e)}"
-            )
-    
-    return _supabase_client
-
-def format_with_gemini(ocr_json_data: dict) -> str:
-    """
-    Format OCR JSON output using Gemini.
-    
-    Args:
-        ocr_json_data: Dictionary containing OCR results
-        
-    Returns:
-        Formatted JSON string from Gemini
-    """
-    try:
-        model = get_gemini_model()
-        
-        # Create a prompt for Gemini to format the OCR output
-        prompt = f"""Please format and structure the following OCR output into a clean, well-organized JSON format.
-        
-The OCR output contains text extracted from a PDF document. Please:
-1. Clean up any formatting issues
-2. Structure the data logically
-3. Preserve all important information
-4. Return a valid JSON object
-
-OCR Data:
-{json.dumps(ocr_json_data, indent=2)}
-
-Please return only the formatted JSON, no additional text or markdown formatting."""
-
-        response = model.generate_content(prompt)
-        formatted_output = response.text.strip()
-        
-        # Try to parse and validate JSON
-        try:
-            json.loads(formatted_output)
-        except json.JSONDecodeError:
-            # If Gemini didn't return pure JSON, try to extract it
-            # Remove markdown code blocks if present
-            if "```json" in formatted_output:
-                formatted_output = formatted_output.split("```json")[1].split("```")[0].strip()
-            elif "```" in formatted_output:
-                formatted_output = formatted_output.split("```")[1].split("```")[0].strip()
-            # Try parsing again
-            json.loads(formatted_output)
-        
-        return formatted_output
-    except Exception as e:
-        print(f"⚠️ Error formatting with Gemini: {e}")
-        # Return original JSON if Gemini fails
-        return json.dumps(ocr_json_data, indent=2)
-
-def save_to_supabase(filename: str, formatted_json: str, original_ocr_data: dict):
-    """
-    Save formatted OCR output to Supabase.
-    
-    Args:
-        filename: Original PDF filename
-        formatted_json: Gemini-formatted JSON string
-        original_ocr_data: Original OCR results dictionary
-        
-    Returns:
-        dict with 'success' bool and 'data' or 'error' message
-    """
-    try:
-        supabase = get_supabase_client()
-        
-        # Prepare data for Supabase
-        record = {
-            "filename": filename,
-            "formatted_json": formatted_json,
-            "original_ocr_data": json.dumps(original_ocr_data),
-            "created_at": datetime.utcnow().isoformat(),
-            "total_pages": original_ocr_data.get("total_pages", 0)
-        }
-        
-        # Insert into Supabase (assuming table name is "ocr_results")
-        # You may need to adjust the table name based on your Supabase schema
-        response = supabase.table("ocr_results").insert(record).execute()
-        
-        print(f"✅ Saved to Supabase: {response.data}")
-        return {"success": True, "data": response.data}
-    except ValueError as e:
-        # URL validation errors
-        error_msg = f"Supabase configuration error: {str(e)}"
-        print(f"⚠️ {error_msg}")
-        return {"success": False, "error": error_msg}
-    except RuntimeError as e:
-        # Client creation errors
-        error_msg = f"Supabase connection error: {str(e)}"
-        print(f"⚠️ {error_msg}")
-        return {"success": False, "error": error_msg}
-    except Exception as e:
-        # Other errors (network, table not found, etc.)
-        error_msg = str(e)
-        print(f"⚠️ Error saving to Supabase: {error_msg}")
-        # Provide helpful hints for common errors
-        if "Name or service not known" in error_msg or "[Errno -2]" in error_msg:
-            error_msg += " (Check SUPABASE_URL format: should be 'https://your-project.supabase.co')"
-        elif "relation" in error_msg.lower() and "does not exist" in error_msg.lower():
-            error_msg += " (Table 'ocr_results' may not exist. Create it in Supabase.)"
-        return {"success": False, "error": error_msg}
+# All Gemini/Supabase functions are imported from gemini_supabase.py
 
 @app.get("/")
 async def root():
@@ -336,36 +184,105 @@ async def ocr_pdf(file: UploadFile = File(...)):
                         "error": str(e)
                     })
 
-            # Prepare OCR results
-            ocr_data = {
+            # Return OCR results only (no Gemini/Supabase - those are separate)
+            return {
                 "filename": file.filename,
                 "total_pages": len(images),
                 "results": results
             }
             
-            # Format with Gemini
-            print("🤖 Formatting OCR output with Gemini...")
-            formatted_json = format_with_gemini(ocr_data)
-            print("✅ Gemini formatting completed")
-            
-            # Save to Supabase
-            print("💾 Saving to Supabase...")
-            supabase_result = save_to_supabase(file.filename, formatted_json, ocr_data)
-            
-            # Return response with both original and formatted data
-            response_data = {
-                "filename": file.filename,
-                "total_pages": len(images),
-                "results": results,
-                "formatted_json": formatted_json,
-                "supabase_saved": supabase_result.get("success", False) if isinstance(supabase_result, dict) else supabase_result is not None
-            }
-            
-            # Include Supabase error details if save failed
-            if isinstance(supabase_result, dict) and not supabase_result.get("success"):
-                response_data["supabase_error"] = supabase_result.get("error", "Unknown error")
-            
-            return response_data
-            
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+
+@app.get("/check-cache")
+async def check_cache_endpoint(filename: str):
+    """Check if OCR results for a filename already exist in Supabase cache."""
+    result = check_cache(filename)
+    if result.get("cached"):
+        return {
+            "cached": True,
+            "data": result["data"],
+            "message": f"Found cached data for {filename}"
+        }
+    else:
+        return {
+            "cached": False,
+            "data": None,
+            "message": f"No cached data found for {filename}",
+            "error": result.get("error")
+        }
+
+@app.post("/analyze")
+async def analyze_ocr(ocr_data: dict):
+    """
+    Analyze OCR output using Gemini and save to Supabase.
+    This endpoint works standalone - no Modal required.
+    
+    Expected input:
+    {
+        "filename": "document.pdf",
+        "total_pages": 2,
+        "results": [
+            {"page": 1, "text": "...", "status": "success"},
+            ...
+        ]
+    }
+    """
+    try:
+        # Validate input
+        if "filename" not in ocr_data or "results" not in ocr_data:
+            raise HTTPException(status_code=400, detail="Missing 'filename' or 'results' in input")
+        
+        # Check cache first
+        print(f"🔍 Checking cache for {ocr_data['filename']}...")
+        cache_check = check_cache(ocr_data['filename'])
+        if cache_check.get("cached"):
+            print("✅ Found cached data, returning...")
+            return {
+                "status": "cached",
+                "message": "Using cached analysis",
+                "data": cache_check["data"]
+            }
+        
+        # Analyze with Gemini
+        print("🤖 Analyzing OCR output with Gemini...")
+        formatted_json = format_with_gemini(ocr_data)
+        print("✅ Gemini analysis completed")
+        
+        # Parse Gemini output
+        gemini_analysis = json.loads(formatted_json)
+        
+        # Convert to DataFrame
+        print("📊 Converting to DataFrame...")
+        dataframe_data = convert_to_dataframe(gemini_analysis)
+        print("✅ DataFrame conversion completed")
+        
+        # Save to Supabase
+        print("💾 Saving to Supabase...")
+        supabase_result = save_to_supabase(
+            ocr_data['filename'], 
+            formatted_json, 
+            ocr_data,
+            dataframe_data
+        )
+        
+        if supabase_result.get("success"):
+            return {
+                "status": "success",
+                "filename": ocr_data['filename'],
+                "gemini_analysis": gemini_analysis,
+                "dataframe": dataframe_data,
+                "supabase_saved": True
+            }
+        else:
+            return {
+                "status": "partial_success",
+                "filename": ocr_data['filename'],
+                "gemini_analysis": gemini_analysis,
+                "dataframe": dataframe_data,
+                "supabase_saved": False,
+                "supabase_error": supabase_result.get("error")
+            }
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")

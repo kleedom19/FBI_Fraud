@@ -76,3 +76,12 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+
+# Test/output files (keep sample_ocr_data.json for testing)
+*_ocr.json
+ocr_results.json
+*.pdf
+!sample_ocr_data.json
+
+# Jupyter notebooks (optional - can be committed for reference)
+# *.ipynb

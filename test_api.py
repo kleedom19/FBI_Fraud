@@ -1,9 +1,14 @@
 """
 Test script for DeepSeek-OCR Modal API
-Tests the deployed endpoint with sample PDF files.
+Tests the OCR endpoint only (Gemini/Supabase are separate).
+
+Usage:
+    python test_api.py path/to/file.pdf
+    python test_api.py path/to/file.pdf --save-json  # Save OCR results for later analysis
 """
 import requests
 import sys
+import argparse
 from pathlib import Path
 import json
 import time
@@ -22,8 +27,8 @@ def test_health_check(base_url: str):
         return False
 
 
-def test_ocr_endpoint(base_url: str, pdf_path: str):
-    """Test the OCR endpoint with a PDF file."""
+def test_ocr_endpoint(base_url: str, pdf_path: str, save_json: bool = False):
+    """Test the OCR endpoint with a PDF file (OCR only, no Gemini/Supabase)."""
     print(f"\n📄 Testing OCR endpoint with: {pdf_path}")
     
     # Check if file exists
@@ -38,6 +43,7 @@ def test_ocr_endpoint(base_url: str, pdf_path: str):
             files = {'file': (pdf_file.name, f, 'application/pdf')}
             
             print(f"📤 Uploading {pdf_file.name} ({pdf_file.stat().st_size / 1024:.2f} KB)...")
+            print("⚠️  Note: This runs OCR only. Use analyze_ocr.py for Gemini analysis.")
             start_time = time.time()
             
             response = requests.post(
@@ -56,15 +62,7 @@ def test_ocr_endpoint(base_url: str, pdf_path: str):
             print(f"📊 Results summary:")
             print(f"   - Filename: {result['filename']}")
             print(f"   - Total pages: {result['total_pages']}")
-            
-            # Check if Gemini formatting and Supabase saving happened
-            if 'formatted_json' in result:
-                print(f"   - Gemini formatting: ✅ Completed")
-            if 'supabase_saved' in result:
-                status = "✅ Saved" if result['supabase_saved'] else "❌ Failed"
-                print(f"   - Supabase storage: {status}")
-                if not result['supabase_saved'] and 'supabase_error' in result:
-                    print(f"     Error: {result['supabase_error']}")
+            print(f"\n💡 Next step: Run 'python analyze_ocr.py {pdf_file.stem}_ocr.json' to analyze with Gemini")
             
             # Display results for each page
             for page_result in result['results']:
@@ -95,55 +93,48 @@ def test_ocr_endpoint(base_url: str, pdf_path: str):
         return None
 
 
-def save_results(result: dict, output_path: str = "ocr_results.json"):
+def save_results(result: dict, output_path: str = None):
     """Save OCR results to a JSON file."""
+    if output_path is None:
+        filename = result.get('filename', 'ocr_output')
+        if filename.endswith('.pdf'):
+            filename = filename[:-4]
+        output_path = f"{filename}_ocr.json"
+    
     try:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(result, f, indent=2, ensure_ascii=False)
         print(f"\n💾 Results saved to: {output_path}")
+        return output_path
     except Exception as e:
         print(f"❌ Failed to save results: {e}")
+        return None
 
 
 def main():
     """Main test function."""
+    parser = argparse.ArgumentParser(description="Test Modal OCR endpoint")
+    parser.add_argument("pdf_file", help="Path to PDF file")
+    parser.add_argument("--base-url", type=str, 
+                       default="https://kleedom--deepseek-ocr-serve.modal.run",
+                       help="Modal endpoint URL")
+    parser.add_argument("--save-json", action="store_true",
+                       help="Save OCR results to JSON file")
+    
+    args = parser.parse_args()
+    
     print("=" * 60)
-    print("🚀 DeepSeek-OCR API Test Suite")
+    print("🚀 DeepSeek-OCR API Test (OCR Only)")
     print("=" * 60)
+    print("\n⚠️  Note: This tests OCR only. Gemini/Supabase are separate.")
+    print("   Use 'python analyze_ocr.py <ocr_json>' or 'python client_pipeline.py <pdf>' for full pipeline")
+    print()
     
-    # Configuration
-    # Replace this with your actual Modal endpoint URL after deployment
-    # Example: "https://your-workspace--deepseek-ocr-serve.modal.run"
-    BASE_URL = "https://kleedom--deepseek-ocr-serve.modal.run"
-    
-    # Check if URL is configured
-    if BASE_URL == "https://kleedom--deepseek-ocr-serve.modal.run":
-        print("\n⚠️  WARNING: Please update BASE_URL with your Modal endpoint URL")
-        print("   After deploying, run: modal deploy deploy_modal.py")
-        print("   Then copy the URL and paste it into this script")
-        
-        # For local testing during development
-        print("\n💡 For local testing, you can use: http://localhost:8000")
-        user_input = input("\nEnter your Modal endpoint URL (or press Enter for localhost:8000): ").strip()
-        
-        if user_input:
-            BASE_URL = user_input.rstrip('/')
-        else:
-            BASE_URL = "http://localhost:8000"
-    
-    # Test PDF file path
-    if len(sys.argv) > 1:
-        pdf_path = sys.argv[1]
-    else:
-        print("\n📁 No PDF file specified.")
-        pdf_path = input("Enter path to PDF file to test: ").strip().strip('"\'')
-        
-        if not pdf_path:
-            print("❌ No file specified. Exiting.")
-            sys.exit(1)
+    BASE_URL = args.base_url.rstrip('/')
+    pdf_path = args.pdf_file
     
     # Run tests
-    print(f"\n🎯 Testing endpoint: {BASE_URL}")
+    print(f"🎯 Testing endpoint: {BASE_URL}")
     
     # Test 1: Health check
     if not test_health_check(BASE_URL):
@@ -151,18 +142,22 @@ def main():
         sys.exit(1)
     
     # Test 2: OCR endpoint
-    result = test_ocr_endpoint(BASE_URL, pdf_path)
+    result = test_ocr_endpoint(BASE_URL, pdf_path, save_json=args.save_json)
     
     if result:
         # Save results
-        save_results(result)
+        output_file = save_results(result)
         
         print("\n" + "=" * 60)
-        print("✅ All tests completed successfully!")
+        print("✅ OCR test completed successfully!")
+        print(f"📄 OCR results saved to: {output_file}")
+        print(f"\n💡 Next steps:")
+        print(f"   1. Analyze with Gemini: python analyze_ocr.py {output_file}")
+        print(f"   2. Or run full pipeline: python client_pipeline.py {pdf_path}")
         print("=" * 60)
     else:
         print("\n" + "=" * 60)
-        print("❌ Tests failed")
+        print("❌ OCR test failed")
         print("=" * 60)
         sys.exit(1)
 
