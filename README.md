@@ -108,3 +108,22 @@ After running `deepseekOcr.py`, the OCR produces raw text
 | Real Estate                     | 1,765  |
 | Lottery/Sweepstakes/Inheritance | 1,711  |
 | Harassment/Stalking             | 696    |
+
+## Visuals / Application Design 
+
+FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be analyzed for fraud trends. This pipeline consists of four main stages: 
+
+1. **Input PDFs** - Raw FBI fraud reports
+2. **OCR Extraction** - `deepseekOcr.py` reads PDFs and extracts text/tables
+3. **Data Cleaning / Structuring** - `gemini_test.ipynb` converts messy OCR output into structured JSON/tables.
+4. **Analysis & Insights** - Jupyter notebook or Python scripts analyze the data and generate visualizations of trends affecting 60+ individuals
+
+### Pipeline Diagram
+
+```mermaid
+flowchart TD
+A[FBI Fraud PDFs] --> B[Deepseek OCR\n(deepseekOcr.py)]
+    B --> C[Gemini API Cleaning\n(gemini_test.ipynb)]
+    C --> D[Analysis & Visualizations\n(Jupyter Notebooks / Scripts)]
+    D --> E[Insights: Fraud Trends & Reports]
+```
