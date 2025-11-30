@@ -120,10 +120,3 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 
 ### Pipeline Diagram
 
-```mermaid
-flowchart TD
-    A[FBI Fraud PDFs] --> B[Deepseek OCR (deepseekOcr.py)]
-    B --> C[Gemini API Cleaning (gemini_test.ipynb)]
-    C --> D[Analysis & Visualizations (Jupyter Notebooks / Scripts)]
-    D --> E[Insights: Fraud Trends & Reports]
-```
