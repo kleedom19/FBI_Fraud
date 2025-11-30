@@ -67,3 +67,44 @@ FBI-Fraud/
 ├── deepseekOcr.py          # OCR processing script
 └── pdfScraping.py          # PDF analysis script
 ```
+## Code Snippets 
+
+### 1. Sample Input PDF 
+Here is an example snippet from `page28.pdf` showing crime types reported by individuals 60+:
+
+| Crime Type           | Count  | Crime Type                      | Count |
+| -------------------- | ------ | ------------------------------- | ----- |
+| Phishing/Spoofing    | 23,252 | Advanced Fee                    | 1,897 |
+| Tech Support         | 16,777 | Real Estate                     | 1,765 |
+| Extortion            | 12,618 | Lottery/Sweepstakes/Inheritance | 1,711 |
+| Personal Data Breach | 9,827  | Harassment/Stalking             | 696   |
+
+### 2. OCR Output 
+After running `deepseekOcr.py`, the OCR produces raw text
+
+```json
+{
+  "filename": "page28.pdf",
+  "total_pages": 1,
+  "results": [
+    {
+      "page": 1,
+      "text": "<table><tr><td>Phishing/Spoofing</td><td>23,252</td><td>Advanced Fee</td><td>1,897</td></tr>...</table>",
+      "status": "success"
+    }
+  ]
+}
+```
+
+### 3. Cleaned Data Snippet 
+
+| Crime Type                      | Count  |
+| ------------------------------- | ------ |
+| Phishing/Spoofing               | 23,252 |
+| Tech Support                    | 16,777 |
+| Extortion                       | 12,618 |
+| Personal Data Breach            | 9,827  |
+| Advanced Fee                    | 1,897  |
+| Real Estate                     | 1,765  |
+| Lottery/Sweepstakes/Inheritance | 1,711  |
+| Harassment/Stalking             | 696    |
