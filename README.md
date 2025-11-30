@@ -120,3 +120,52 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 
 ### Pipeline Diagram
 
+## Clear Findings
+
+FBI-Fraud extracts and organizes messy FBI fraud PDFs to highlight trends and common scams, especially targeting individuals 60+. By combining OCR with the Gemini API, we can clean text, structure data, and generate insights automatically.
+
+### Key Findings
+
+| Crime Type                      | Count  |
+| ------------------------------- | ------ |
+| Phishing/Spoofing               | 23,252 |
+| Tech Support                    | 16,777 |
+| Extortion                       | 12,618 |
+| Personal Data Breach            | 9,827  |
+| Advanced Fee                    | 1,897  |
+| Real Estate                     | 1,765  |
+| Lottery/Sweepstakes/Inheritance | 1,711 |
+| Harassment/Stalking             | 696    |
+
+**Insights:**  
+
+- **Phishing/Spoofing is the most common scam** targeting older adults.  
+- **Tech support and extortion scams** also impact thousands of victims.  
+- Data-driven analysis helps quickly **identify patterns across large PDF datasets**, which was previously difficult due to messy formatting.
+
+### Gemini API Example
+
+Using the Gemini API, messy text can be summarized or transformed into insights:
+
+```python
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+# Load environment variables
+load_dotenv()
+
+# Configure API key
+api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError(
+        "GEMINI_API_KEY not found! Please set it in your .env file:\n"
+        "GEMINI_API_KEY=your_key_here"
+    )
+genai.configure(api_key=api_key)
+
+# Generate test response
+model = genai.GenerativeModel("gemini-2.0-flash-lite-001")
+response = model.generate_content("Explain how AI works in a few words")
+print(response.text)
+
