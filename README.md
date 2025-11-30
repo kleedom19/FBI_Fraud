@@ -1,109 +1,59 @@
 # FBI-Fraud
+### Making messy FBI fraud PDFs easy to read and use for spotting scams
 
-A final project for DTSC 3602 looking at fraud detection from the FBI using AI/ML techniques for document analysis and fraud detection.
+## Team Members 
+- Katie Leedom
+- Rohan Salwekar
+- Jacob German
+- Christian Ohllson
+
+## Project Summary 
+FBI-Fraud takes messy FBI fraud PDFs, extracts and organizes the data, and helps identify trends and common scams. It's especially useful for spotting frauds that target older adults over 60, making it easier to get clear insights from complex reports. 
 
 ## Features
 
-- **Gemini API Integration**: Uses Google's Generative AI for text analysis
-- **OCR Processing**: DeepSeek OCR for document text extraction
-- **PDF Analysis**: Automated PDF processing and table extraction
+- **Simple OCR Pipeline**: Extracts chart-based information from fraud PDFs using Deepseek OCR 
+- **Gemini API Integration**: Converts messy PDF text/JSON into clean, strucutred tables
+- **PDF Analysis**: Automates scraping, cleaning, and organizing fraud data
 - **Jupyter Notebooks**: Interactive analysis and prototyping
+- **Designed for Fraud Insights**: Helps highlight scams affecting vulnerable age groups 60+
 
-## Prerequisites
+## Quick Start 
 
-- Python 3.9 or higher
-- [uv](https://docs.astral.sh/uv/) package manager (10-100x faster than pip)
+Follow these steps to get FBI-Fraud running on your machine. Make sure you have **Python 3.9 or higher** installed. 
 
-> **Note**: This project has been migrated from `pip` to `uv` for faster, more reliable dependency management. The `requirements.txt` file is kept for reference only.
-
-## Installation
-
-### 1. Install uv (if not already installed)
-
-```bash
-# On macOS and Linux
+**Install uv** 
+```bash 
+# macOS / Linux 
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# On Windows
+# Windows (Powershell) 
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
-# Or via pip
+# Or via pip 
 pip install uv
 ```
-
-### 2. Clone and setup the project
-
+#Clone project
 ```bash
-git clone <your-repo-url>
-cd FBI-Fraud
-
-# Install dependencies (creates .venv automatically)
-uv sync
-
-# Optional: Activate virtual environment manually
-source .venv/bin/activate  # On macOS/Linux
-# or
-.venv\Scripts\activate     # On Windows
+git clone https://github.com/kleedom19/FBI-Fraud
+cd FBI-Fraud 
 ```
-
-> **Migration from pip**: If you were using `pip install -r requirements.txt`, replace with `uv sync`. All commands now use `uv run` instead of direct execution.
-
-## Usage
-
-### Environment Setup
-
-1. Create a `.env` file in the project root:
+#Install dependencies
 ```bash
-cp .env.example .env
+uv sync 
 ```
-
-2. Add your API keys to `.env`:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-### Running the Project
-
-#### Jupyter Notebooks
+#Set up Environment variables
 ```bash
-# Start Jupyter Lab
-uv run jupyter lab
-
-# Or start Jupyter Notebook
-uv run jupyter notebook
+cp .env.example .env 
 ```
-
-#### Python Scripts
+#Run a test OCR script 
 ```bash
-# Run individual scripts
-uv run python gemini_test.py
 uv run python deepseekOcr.py
-uv run python pdfScraping.py
 ```
 
-### Development
+## Project Structure 
 
-#### Install development dependencies
-```bash
-uv sync --dev
-```
-
-#### Code formatting and linting
-```bash
-# Format code
-uv run black .
-
-# Sort imports
-uv run isort .
-
-# Lint code
-uv run flake8 .
-
-# Type checking
-uv run mypy .
-```
-
-## Project Structure
+Here's an overview of the main files and folders in FBI-Fraud
 
 ```
 FBI-Fraud/
@@ -117,40 +67,3 @@ FBI-Fraud/
 ├── deepseekOcr.py          # OCR processing script
 └── pdfScraping.py          # PDF analysis script
 ```
-
-## Troubleshooting
-
-### Common Issues
-
-- **"command not found: uv"**: Install uv using the commands above
-- **Missing dependencies**: Run `uv sync --reinstall`
-- **Add new dependencies**: `uv add package-name` or `uv add --dev package-name`
-- **Remove dependencies**: `uv remove package-name`
-
-### Jupyter Kernel
-
-The project includes a registered Jupyter kernel "FBI-Fraud (uv)" that uses the uv environment. Start Jupyter with `uv run jupyter lab` and select this kernel for all notebooks.
-
-## Dependencies
-
-### Core Dependencies
-- `google-generativeai`: Google's Generative AI API
-- `python-dotenv`: Environment variable management
-
-### Data Processing
-- `pandas`: Data manipulation and analysis
-- `beautifulsoup4`: HTML/XML parsing
-- `pypdf`: PDF processing
-- `pdfplumber`: Advanced PDF text extraction
-
-### ML/AI
-- `transformers`: Hugging Face transformers
-- `torch`: PyTorch for deep learning
-- `vllm`: High-performance LLM inference
-- `Pillow`: Image processing
-
-### Development
-- `jupyter`: Jupyter notebook environment
-- `ipykernel`: Jupyter kernel
-- `ipywidgets`: Interactive widgets
-- `tqdm`: Progress bars
