@@ -5,7 +5,7 @@
 - Katie Leedom
 - Rohan Salwekar
 - Jacob German
-- Christian Ohllson
+- Christian Ohlsson
 
 ## Project Summary 
 FBI-Fraud takes messy FBI fraud PDFs, extracts and organizes the data, and helps identify trends and common scams. It's especially useful for spotting frauds that target older adults over 60, making it easier to get clear insights from complex reports. 
