@@ -1,4 +1,21 @@
-import streamlit as st 
+import streamlit as st
+from fraud_visualizations import (
+    get_all_analyses,
+    get_summary_stats,
+    create_losses_by_category_chart,
+    create_losses_by_age_group_chart,
+    create_losses_trend_chart,
+    create_victims_by_age_group_chart,
+    create_category_comparison_chart,
+    create_state_visualization
+)
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+
 
 st.set_page_config(layout="wide", page_title="Demonstration", page_icon="📊")
 
@@ -94,7 +111,7 @@ col3, col4 = st.columns([1,1])
 
 with col3:
     # ADD IMAGE
-    st.image("imagesForSL/step1.png", width=550, caption="One part of the PDF data we are scraping.")
+    st.image("imagesForSL/gemini.png", width=550, caption="Snippet of the Gemini code")
 
 with col4:
     st.markdown("<div class='soft-subheader'>2) Use Gemini to convert Markdown into a pandas DataFrame</div>", unsafe_allow_html=True)
@@ -138,7 +155,7 @@ st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ------ STEP 3 ------
-col5, col6 = st.columns([1.5,1])
+col5, col6 = st.columns([1,1])
 
 with col5:
     st.markdown("<div class='soft-subheader'>3) Load into Supabase</div>", unsafe_allow_html=True)
@@ -149,7 +166,7 @@ with col5:
 
 with col6:
     # ADD IMAGE
-    st.image("imagesForSL/step1.png", width=550, caption="One part of the PDF data we are scraping.")
+    st.image("imagesForSL/supabase.png", width=550, caption="Snippet of data in Supabase")
 
 st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
@@ -159,10 +176,10 @@ col3, col4 = st.columns([1,1])
 
 with col3:
     # ADD IMAGE
-    st.image("imagesForSL/step1.png", width=550, caption="One part of the PDF data we are scraping.")
+    st.image("imagesForSL/step4.png", width=550, caption="A graph showing total financial loss by age group.")
 
 with col4:
-    st.markdown("<div class='soft-subheader'>4) Create Visulizations and Analyze</div>", unsafe_allow_html=True)
+    st.markdown("<div class='soft-subheader'>4) Create Visualizations and Analyze</div>", unsafe_allow_html=True)
     st.write("""
         Utilizing the tables in Supabase, users can call the different tables to display their data on their prefered platform. 
         
