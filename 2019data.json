@@ -1,0 +1,14 @@
+{
+  "filename": "2019agedata.pdf",
+  "total_pages": 1,
+  "results": [
+    {
+      "page": 1,
+      "text": "<table><tr><td colspan=\"3\">Victims</td></tr><tr><td>Age Range⁶</td><td>Total Count</td><td>Total Loss</td></tr><tr><td>Under 20</td><td>10,724</td><td>\\(421,169,232\\)</td></tr><tr><td>20 - 29</td><td>44,496</td><td>\\(174,673,470\\)</td></tr><tr><td>30 - 39</td><td>52,820</td><td>\\(332,208,189\\)</td></tr><tr><td>40 - 49</td><td>51,864</td><td>\\(529,231,267\\)</td></tr><tr><td>50 - 59</td><td>50,608</td><td>\\(589,624,844\\)</td></tr><tr><td>Over 60</td><td>68,013</td><td>\\(835,164,766\\)</td></tr></table>",
+      "status": "success"
+    }
+  ],
+  "formatted_json": "{\n  \"filename\": \"2019agedata.pdf\",\n  \"total_pages\": 1,\n  \"results\": [\n    {\n      \"page\": 1,\n      \"text\": \"<table><tr><td colspan=\\\"3\\\">Victims</td></tr><tr><td>Age Range\\u2076</td><td>Total Count</td><td>Total Loss</td></tr><tr><td>Under 20</td><td>10,724</td><td>\\\\(421,169,232\\\\)</td></tr><tr><td>20 - 29</td><td>44,496</td><td>\\\\(174,673,470\\\\)</td></tr><tr><td>30 - 39</td><td>52,820</td><td>\\\\(332,208,189\\\\)</td></tr><tr><td>40 - 49</td><td>51,864</td><td>\\\\(529,231,267\\\\)</td></tr><tr><td>50 - 59</td><td>50,608</td><td>\\\\(589,624,844\\\\)</td></tr><tr><td>Over 60</td><td>68,013</td><td>\\\\(835,164,766\\\\)</td></tr></table>\",\n      \"status\": \"success\",\n      \"data\": {\n        \"Victims\": [\n          {\n            \"Age Range\": \"Under 20\",\n            \"Total Count\": 10724,\n            \"Total Loss\": \"(421,169,232)\"\n          },\n          {\n            \"Age Range\": \"20 - 29\",\n            \"Total Count\": 44496,\n            \"Total Loss\": \"(174,673,470)\"\n          },\n          {\n            \"Age Range\": \"30 - 39\",\n            \"Total Count\": 52820,\n            \"Total Loss\": \"(332,208,189)\"\n          },\n          {\n            \"Age Range\": \"40 - 49\",\n            \"Total Count\": 51864,\n            \"Total Loss\": \"(529,231,267)\"\n          },\n          {\n            \"Age Range\": \"50 - 59\",\n            \"Total Count\": 50608,\n            \"Total Loss\": \"(589,624,844)\"\n          },\n          {\n            \"Age Range\": \"Over 60\",\n            \"Total Count\": 68013,\n            \"Total Loss\": \"(835,164,766)\"\n          }\n        ]\n      }\n    }\n  ]\n}",
+  "supabase_saved": false,
+  "supabase_error": "[Errno -2] Name or service not known (Check SUPABASE_URL format: should be 'https://your-project.supabase.co')"
+}
