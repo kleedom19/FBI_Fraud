@@ -120,6 +120,12 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 
 ### Pipeline Diagram
 
+flowchart LR
+    A[Raw FBI Fraud PDFs] --> B[OCR Extraction<br/>deepseekOcr.py]
+    B --> C[Gemini Cleaning<br/>Structured JSON/Tables]
+    C --> D[Analysis & Visualization<br/>Jupyter / Python]
+    D --> E[Insights<br/>Fraud Trends for Age 60+]
+
 ## Clear Findings
 
 FBI-Fraud extracts and organizes messy FBI fraud PDFs to highlight trends and common scams, especially targeting individuals 60+. By combining OCR with the Gemini API, we can clean text, structure data, and generate insights automatically.
