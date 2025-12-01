@@ -120,11 +120,13 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 
 ### Pipeline Diagram
 
+```
 flowchart LR
     A[Raw FBI Fraud PDFs] --> B[OCR Extraction<br/>deepseekOcr.py]
     B --> C[Gemini Cleaning<br/>Structured JSON/Tables]
     C --> D[Analysis & Visualization<br/>Jupyter / Python]
     D --> E[Insights<br/>Fraud Trends for Age 60+]
+```
 
 ## Clear Findings
 
