@@ -152,13 +152,12 @@ col1, col2 = st.columns([1, 1])
 with col1:
     st.markdown("<div class='soft-subheader'>Total Financial Loss By Age Group</div>", unsafe_allow_html=True)
     st.write("""
-    This visualization shows data from 20xx - 20xx and graphs financial loss totals due to scams and fraud by age group. The color scale shows viewers darker blues indicate higher amounts of money lost.
+    This visualization shows data from 2019-2020 and graphs financial loss totals due to scams and fraud by age group. The color scale shows viewers darker blues indicate higher amounts of money lost.
     
     Adults over 60 had the highest total amount lost, exceeding just over $1.8 billion, making them the most financially impacted group.
     
     Losses gradualy decline with younger groups, with the exception of 20-29 being the lowest at only $375 million lost.
              
-    These findings show that those 60 and older are--------
     """)
    
     st.markdown('</div>', unsafe_allow_html=True)
@@ -200,7 +199,7 @@ st.markdown("---")
 
 st.markdown("<div class='soft-subheader'>Fraud Incidents by State</div>", unsafe_allow_html=True)
 st.markdown("""
-    This graphs ranks U.S. states by their total financial loss over 200xx to 20xx.
+    This graphs ranks U.S. states by their total financial loss over 2024
 
     California stands out with over $800 million in loss due to fraud. Texas follows behind with $500 million and Florida in third with $390 million.
 

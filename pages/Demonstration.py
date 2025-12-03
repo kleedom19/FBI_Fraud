@@ -1,4 +1,9 @@
 import streamlit as st
+import pandas as pd
+import supabase
+from supabase import create_client, Client
+from st_supabase_connection import SupabaseConnection
+import base64
 from fraud_visualizations import (
     get_all_analyses,
     get_summary_stats,
@@ -15,7 +20,6 @@ load_dotenv()
 import os
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
-
 
 st.set_page_config(layout="wide", page_title="Demonstration", page_icon="📊")
 
@@ -94,13 +98,28 @@ with col1:
         uv run ocr_api.py .\\your-file.pdf
         ```
         This calls Modal to coldstart (this may take a minute) and the PDF will run through the OCR. The Markdown output is returned in a JSON file under the name specified in the code into the same folder.
+    
+             
+        To the right is an example of a PDF we scraped containing elder fraud data from 2022 - 2024.
     """)
     
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
-    # FIX IMAGE IT IS BLURRY
-    st.image("imagesForSL/step1.png", width=550, caption="One part of the PDF data we are scraping.")
+
+    with open("imagesForSL/60AndUp.pdf", "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode("utf-8")
+
+    pdf_display = f"""
+    <iframe 
+        src="data:application/pdf;base64,{base64_pdf}" 
+        width="100%" 
+        height="600px" 
+        style="border: none;"
+    ></iframe>
+    """
+
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
@@ -157,28 +176,40 @@ st.markdown('</div>', unsafe_allow_html=True)
 # ------ STEP 3 ------
 col5, col6 = st.columns([1,1])
 
+supabase: Client = create_client(supabase_url, supabase_key)
+
+# Fetch table
+response = supabase.table("ocr_results").select("*").execute()
+df = pd.DataFrame(response.data)
+
 with col5:
     st.markdown("<div class='soft-subheader'>3) Load into Supabase</div>", unsafe_allow_html=True)
     st.write("""
         The newly cleaned and formatted data is stored in Supabase tables to be called for further analysis. Once the data is stored, users do not have to run the same files again, which saves on token usage, and it is available to any team member to call on their desired platform.
         
-        The raw OCR Markdown data is also saved into tables, allowing for it to be rerun through different queries in Gemini as needed. This adds an extra layer of clarity in how the cleaned data was dervied, as users can view the exact data as it was scraped by the OCR.     """)
+        The raw OCR Markdown data is also saved into tables, allowing for it to be rerun through different queries in Gemini as needed. This adds an extra layer of clarity in how the cleaned data was dervied, as users can view the exact data as it was scraped by the OCR.   
+             
+        The 'key_metrics' column has a Gemini generated one-sentence summary of its findings within the data scraped, including total loses, total victim count, top fraud categories, and the year the data was collected. 
+
+        The 'keywords' column displays the most commonly found key words in documents relating to fraud.   
+         
+              """)
+
 
 with col6:
-    # ADD IMAGE
-    st.image("imagesForSL/supabase.png", width=550, caption="Snippet of data in Supabase")
+    st.dataframe(df, use_container_width=True)
 
 st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ------ STEP 4 ------
-col3, col4 = st.columns([1,1])
+col7, col8 = st.columns([1,1])
 
-with col3:
+with col7:
     # ADD IMAGE
     st.image("imagesForSL/step4.png", width=550, caption="A graph showing total financial loss by age group.")
 
-with col4:
+with col8:
     st.markdown("<div class='soft-subheader'>4) Create Visualizations and Analyze</div>", unsafe_allow_html=True)
     st.write("""
         Utilizing the tables in Supabase, users can call the different tables to display their data on their prefered platform. 
