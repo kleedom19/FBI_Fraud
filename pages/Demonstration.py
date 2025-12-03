@@ -1,9 +1,12 @@
 import streamlit as st
+<<<<<<< HEAD
 import pandas as pd
 import supabase
 from supabase import create_client, Client
 from st_supabase_connection import SupabaseConnection
 import base64
+=======
+>>>>>>> eba59026d4ecdce083be26343790a03390f64522
 from fraud_visualizations import (
     get_all_analyses,
     get_summary_stats,
@@ -20,6 +23,10 @@ load_dotenv()
 import os
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
+<<<<<<< HEAD
+=======
+
+>>>>>>> eba59026d4ecdce083be26343790a03390f64522
 
 st.set_page_config(layout="wide", page_title="Demonstration", page_icon="📊")
 
@@ -175,12 +182,15 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 # ------ STEP 3 ------
 col5, col6 = st.columns([1,1])
+<<<<<<< HEAD
 
 supabase: Client = create_client(supabase_url, supabase_key)
 
 # Fetch table
 response = supabase.table("ocr_results").select("*").execute()
 df = pd.DataFrame(response.data)
+=======
+>>>>>>> eba59026d4ecdce083be26343790a03390f64522
 
 with col5:
     st.markdown("<div class='soft-subheader'>3) Load into Supabase</div>", unsafe_allow_html=True)
@@ -197,7 +207,12 @@ with col5:
 
 
 with col6:
+<<<<<<< HEAD
     st.dataframe(df, use_container_width=True)
+=======
+    # ADD IMAGE
+    st.image("imagesForSL/supabase.png", width=550, caption="Snippet of data in Supabase")
+>>>>>>> eba59026d4ecdce083be26343790a03390f64522
 
 st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
@@ -209,7 +224,11 @@ with col7:
     # ADD IMAGE
     st.image("imagesForSL/step4.png", width=550, caption="A graph showing total financial loss by age group.")
 
+<<<<<<< HEAD
 with col8:
+=======
+with col4:
+>>>>>>> eba59026d4ecdce083be26343790a03390f64522
     st.markdown("<div class='soft-subheader'>4) Create Visualizations and Analyze</div>", unsafe_allow_html=True)
     st.write("""
         Utilizing the tables in Supabase, users can call the different tables to display their data on their prefered platform. 
