@@ -78,28 +78,71 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 3. **Data Cleaning / Structuring** - `gemini_test.ipynb` converts messy OCR output into structured JSON/tables.
 4. **Analysis & Insights** - Jupyter notebook or Python scripts analyze the data and generate visualizations of trends affecting 60+ individuals
 
-## Code Snippet
 
-import pandas as pd
-import matplotlib.pyplot as plt
+## Pipeline Diagram 
 
-# Top 5 crime types from page28.pdf
-data = {
-    "Crime Type": [
-        "Phishing/Spoofing", "Tech Support", "Extortion", 
-        "Personal Data Breach", "Advanced Fee"
-    ],
-    "Count": [23252, 16777, 12618, 9827, 1897]
-}
+```
+┌─────────────────┐
+│   PDF File      │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐      ┌──────────────────┐
+│  Modal + OCR    │─────▶│  OCR JSON Output │
+│  (Expensive)     │      └────────┬───────────┘
+└─────────────────┘              │
+                                  │
+                                  ▼
+                         ┌──────────────────┐
+                         │  Check Supabase  │
+                         │     Cache        │
+                         └────────┬─────────┘
+                                  │
+                    ┌─────────────┴─────────────┐
+                    │                           │
+                    ▼                           ▼
+            ┌──────────────┐          ┌──────────────────┐
+            │   Cached?    │          │  Gemini Analysis │
+            │   Return     │          │  (Standalone)    │
+            └──────────────┘          └────────┬─────────┘
+                                               │
+                                               ▼
+                                      ┌──────────────────┐
+                                      │  Pandas DataFrame│
+                                      └────────┬─────────┘
+                                               │
+                                               ▼
+                                      ┌──────────────────┐
+                                      │  Save to Supabase│
+                                      └──────────────────┘
+```
 
-df = pd.DataFrame(data)
 
-# Create bar chart
-plt.figure(figsize=(8,5))
-plt.bar(df["Crime Type"], df["Count"], color='skyblue')
-plt.xticks(rotation=45, ha='right')
-plt.ylabel("Number of Cases")
-plt.title("Top 5 FBI Fraud Cases Reported by 60+ Individuals")
-plt.tight_layout()
-plt.savefig("fraud_cases_top5.png")  # Save for GitHub
-plt.show()
+## Clear Findings 
+
+FBI-Fraud extracts and organizes messy FBI fraud PDFs to highlight trends and common sense, especially targeting individuals 60+. By combining OCR with the Gemini API, we can clean text, structure data, and generate insights automatically. 
+
+### Key Findings 
+Here is an example showing how raw OCR text from a pdf is transformed into a strucutured table:
+
+```python
+from deepseekOcr import model, tokenizer
+import pandas as pd 
+## Raw text Extracted from page28.pdf
+raw_text = """ 
+Crime Type, Count
+Phishing/Spoofing, 23252
+Advanced Fee, 1897
+Tech Support, 16777
+Real Estate, 1765
+Extortion, 12618
+""" 
+
+# Convert raw text into structured DataFrame
+data_lines = [line.split(",") for line in raw_text.strip().split("\n")[1:]]
+df = pd.DataFrame(data_lines, columns=["Crime Type", "Count"])
+df["Count"] = df["Count"].astype(int)
+
+# Display cleaned DataFrame
+print(df.head())
+```
