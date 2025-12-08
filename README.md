@@ -81,6 +81,7 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 ## Code Snippet
 
 import pandas as pd
+import matplotlib.pyplot as plt 
 
 ocr_text = """
 Phishing/Spoofing 23,252
@@ -97,10 +98,10 @@ df["Count"] = df["Count"].str.replace(",", "").astype(int)
 
 print(df)
 
-plt,figure(figsize=(10,6))
-plt.bar(df["Crime Type"], df["Count"], color='skyblut')
+plt.figure(figsize=(10,6))
+plt.bar(df["Crime Type"], df["Count"], color='skyblue')
 plt.xticks(rotation=45, ha='right')
-plt.ytabel("Number of Cases")
+plt.ylabel("Number of Cases")
 plt.title("FBI Fraud Cases Reported by 60+ Individuals")
 plt.tight_layout()
 plt.show()
