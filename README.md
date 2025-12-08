@@ -82,7 +82,7 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 
 import pandas as pd
 
-ocr_text= """
+ocr_text = """
 Phishing/Spoofing 23,252
 Advanced Fee 1,897
 Tech Support 16,777
