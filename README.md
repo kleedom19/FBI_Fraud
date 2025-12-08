@@ -95,4 +95,12 @@ df = pd.DataFrame(data, columns=["Crime Type", "Count"])
 
 df["Count"] = df["Count"].str.replace(",", "").astype(int)
 
-print(df.head())
+print(df)
+
+plt,figure(figsize=(10,6))
+plt.bar(df["Crime Type"], df["Count"], color='skyblut')
+plt.xticks(rotation=45, ha='right')
+plt.ytabel("Number of Cases")
+plt.title("FBI Fraud Cases Reported by 60+ Individuals")
+plt.tight_layout()
+plt.show()
