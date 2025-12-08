@@ -122,7 +122,10 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 
 FBI-Fraud extracts and organizes messy FBI fraud PDFs to highlight trends and common sense, especially targeting individuals 60+. By combining OCR with the Gemini API, we can clean text, structure data, and generate insights automatically. 
 
-### Key Findings 
+### Code Snippet / Key Findings
+
+#### 1. Sample input PDF
+Here is an example snippet from 'page28.pdf' showing crime types reported by individuals 60+
 
 | Crime Type                         | Count  |
 |-----------------------------------|--------|
@@ -134,4 +137,22 @@ FBI-Fraud extracts and organizes messy FBI fraud PDFs to highlight trends and co
 | Real Estate                         | 1,765  |
 | Lottery/Sweepstakes/Inheritance    | 1,711  |
 | Harassment/Stalking                 | 696    |
+
+#### OCR Output 
+After running 'deepseekOcr.py', the OCR produces raw JSON text: 
+
+```json
+{
+  "filename": "page28.pdf",
+  "total_pages": 1,
+  "results": [ 
+    {
+      "page": 1,
+      "text": "<table><tr><td>Phishing/Spoofing</td><td>23,252</td><td>Advanced Fee</td><td>1,897</td></tr>...</table>",
+      "status": "success"
+    }
+  }
+}
+```
+
 
