@@ -135,11 +135,3 @@ FBI-Fraud extracts and organizes messy FBI fraud PDFs to highlight trends and co
 | Lottery/Sweepstakes/Inheritance    | 1,711  |
 | Harassment/Stalking                 | 696    |
 
-# Convert raw text into structured DataFrame
-data_lines = [line.split(",") for line in raw_text.strip().split("\n")[1:]]
-df = pd.DataFrame(data_lines, columns=["Crime Type", "Count"])
-df["Count"] = df["Count"].astype(int)
-
-# Display cleaned DataFrame
-print(df.head())
-```
