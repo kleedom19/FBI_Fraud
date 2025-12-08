@@ -81,27 +81,25 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 ## Code Snippet
 
 import pandas as pd
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 
-ocr_text = """
-Phishing/Spoofing 23,252
-Advanced Fee 1,897
-Tech Support 16,777
-Real Estate 1,765
-Extortion 12,618
-"""
+# Top 5 crime types from page28.pdf
+data = {
+    "Crime Type": [
+        "Phishing/Spoofing", "Tech Support", "Extortion", 
+        "Personal Data Breach", "Advanced Fee"
+    ],
+    "Count": [23252, 16777, 12618, 9827, 1897]
+}
 
-data = [line.rsplit(' ', 1) for line in ocr_text.strip().split('\n')]
-df = pd.DataFrame(data, columns=["Crime Type", "Count"])
+df = pd.DataFrame(data)
 
-df["Count"] = df["Count"].str.replace(",", "").astype(int)
-
-print(df)
-
-plt.figure(figsize=(10,6))
+# Create bar chart
+plt.figure(figsize=(8,5))
 plt.bar(df["Crime Type"], df["Count"], color='skyblue')
 plt.xticks(rotation=45, ha='right')
 plt.ylabel("Number of Cases")
-plt.title("FBI Fraud Cases Reported by 60+ Individuals")
+plt.title("Top 5 FBI Fraud Cases Reported by 60+ Individuals")
 plt.tight_layout()
+plt.savefig("fraud_cases_top5.png")  # Save for GitHub
 plt.show()
