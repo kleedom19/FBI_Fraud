@@ -123,21 +123,17 @@ FBI-Fraud processes messy FBI fraud PDF into clean, structured data that can be 
 FBI-Fraud extracts and organizes messy FBI fraud PDFs to highlight trends and common sense, especially targeting individuals 60+. By combining OCR with the Gemini API, we can clean text, structure data, and generate insights automatically. 
 
 ### Key Findings 
-Here is an example showing how raw OCR text from a pdf is transformed into a structured table:
 
-```python
-from deepseekOcr import model, tokenizer
-import pandas as pd 
-
-# Raw text example from page28.pdf
-raw_text = """ 
-Crime Type, Count
-Phishing/Spoofing, 23252
-Advanced Fee, 1897
-Tech Support, 16777
-Real Estate, 1765
-Extortion, 12618
-""" 
+| Crime Type                         | Count  |
+|-----------------------------------|--------|
+| Phishing/Spoofing                  | 23,252 |
+| Tech Support                        | 16,777 |
+| Extortion                           | 12,618 |
+| Personal Data Breach                | 9,827  |
+| Advanced Fee                        | 1,897  |
+| Real Estate                         | 1,765  |
+| Lottery/Sweepstakes/Inheritance    | 1,711  |
+| Harassment/Stalking                 | 696    |
 
 # Convert raw text into structured DataFrame
 data_lines = [line.split(",") for line in raw_text.strip().split("\n")[1:]]
