@@ -22,7 +22,13 @@ def get_gemini_model():
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY not found in environment variables")
     genai.configure(api_key=api_key)
-    return genai.GenerativeModel('gemini-2.0-flash-lite')
+    # Use gemini-1.5-pro or gemini-2.0-flash-exp for larger output capacity
+    # gemini-2.0-flash-lite has limited output tokens
+    try:
+        return genai.GenerativeModel('gemini-2.0-flash-exp')
+    except:
+        # Fallback to flash-lite if exp not available
+        return genai.GenerativeModel('gemini-2.0-flash-lite')
 
 def get_supabase_client():
     """Initialize Supabase client with validation."""
@@ -58,50 +64,78 @@ def format_with_gemini(ocr_json_data: dict) -> str:
     model = get_gemini_model()
     
     filename = ocr_json_data.get("filename", "")
-    # Special handling for full60andup - focus on state data pages
-    is_state_doc = "60andup" in filename.lower() or "60and" in filename.lower()
     
     # For very large documents, truncate OCR data to avoid token limits
+    # Only truncate if absolutely necessary (>150KB), and preserve ALL pages with data
     ocr_data_str = json.dumps(ocr_json_data, indent=2)
-    if len(ocr_data_str) > 100000:  # ~100KB limit
-        print(f"Warning: Large document ({len(ocr_data_str)} chars). Truncating OCR data...")
-        # Keep first 3 pages and last 2 pages to preserve state data (usually at end)
+    if len(ocr_data_str) > 150000:  # ~150KB limit (increased to preserve more data)
+        print(f"Warning: Very large document ({len(ocr_data_str)} chars). Attempting to process all pages...")
+        # Only truncate as last resort - try to keep all pages with actual data
         results = ocr_json_data.get("results", [])
-        if len(results) > 5:
-            truncated_results = results[:3] + results[-2:]
-            ocr_json_data = {**ocr_json_data, "results": truncated_results}
-            ocr_json_data["total_pages"] = len(truncated_results)
-            print(f"Truncated to {len(truncated_results)} pages (first 3 + last 2)")
-    elif is_state_doc:
-        # For state documents, prioritize last 2 pages (state data)
-        results = ocr_json_data.get("results", [])
-        if len(results) >= 6:
-            # Keep pages 1-2 for context, then pages 6-7 for state data
-            prioritized_results = results[:2] + results[-2:]
-            ocr_json_data = {**ocr_json_data, "results": prioritized_results}
-            ocr_json_data["total_pages"] = len(prioritized_results)
-            print(f"Prioritizing pages 1-2 and {len(results)-1}-{len(results)} for state data extraction")
+        # Filter out pages that are just image references with no table data
+        filtered_results = []
+        for result in results:
+            text = result.get("text", "")
+            # Keep pages with tables or substantial text content
+            if "<table>" in text or len(text) > 200:
+                filtered_results.append(result)
+        
+        if len(filtered_results) < len(results):
+            print(f"Filtered out {len(results) - len(filtered_results)} pages with only image references")
+            ocr_json_data = {**ocr_json_data, "results": filtered_results}
+            ocr_json_data["total_pages"] = len(filtered_results)
+        
+        # If still too large, only then truncate, but keep more pages
+        ocr_data_str = json.dumps(ocr_json_data, indent=2)
+        if len(ocr_data_str) > 150000 and len(filtered_results) > 8:
+            print(f"Still too large after filtering. Keeping all pages with data...")
+            # Don't truncate - let Gemini handle it, but send all pages
     
     prompt = f"""Analyze the following OCR output from an FBI fraud report PDF and extract FRAUD-SPECIFIC metrics and financial data.
 
-FOCUS ON EXTRACTING:
-1. **Financial Losses**: Dollar amounts lost to fraud (extract exact numbers, not ranges)
-2. **Fraud Categories**: Types of fraud (e.g., "Business Email Compromise", "Investment Fraud", "Romance Scams")
-3. **Victim Statistics**: Counts of victims by category, age group, or fraud type
-4. **State Data**: Fraud incidents, losses, or victim counts by US state (if available)
-5. **Structured Tables**: Extract ALL tables with numerical data (losses, counts, percentages)
-6. **Year/Time Period**: Extract the year or time period this data represents
-7. **Key Metrics**: Total losses, total victims, average loss per victim, top fraud categories
+CRITICAL: The OCR output contains HTML TABLES (e.g., <table><tr><td>...</td></tr></table>). You MUST parse these HTML tables and extract ALL data from them.
 
-For each page, extract:
-- Tables with fraud statistics (category, loss amount, victim count)
-- Financial figures (dollar amounts, losses, totals)
-- Fraud type classifications
-- Victim demographics (age groups, counts)
-- State-by-state data (if tables show state information)
-- Year/period information
+FOCUS ON EXTRACTING (ALL DATA TYPES ARE EQUALLY IMPORTANT):
+1. **Financial Losses**: Dollar amounts lost to fraud (extract exact numbers, not ranges) - parse from HTML table cells
+2. **Fraud Categories**: Types of fraud (e.g., "Business Email Compromise", "Investment Fraud", "Romance Scams") - extract ALL categories from HTML tables, not just top 5
+3. **Victim Statistics**: Counts of victims by category, age group, or fraud type - extract ALL counts from HTML table rows
+4. **State Data**: Fraud incidents, losses, or victim counts by US state (if available) - extract ALL states from HTML tables
+5. **Trend/Comparison Data**: Multi-year comparisons (e.g., 2024 vs 2023 vs 2022) - extract data for ALL years and ALL categories from HTML tables
+6. **Structured Tables**: Extract ALL data from HTML tables with numerical data (losses, counts, percentages) - parse every <tr> row and <td> cell
+7. **Year/Time Period**: Extract the year or time period this data represents (look for years in table headers or content)
+8. **Key Metrics**: Total losses, total victims, average loss per victim, top fraud categories
 
-IMPORTANT: If the OCR output only shows an image reference (like "![](images/0.jpg)"), note this in the content_summary and try to infer the year from the filename or document context.
+HOW TO PARSE HTML TABLES:
+- Each <table> contains data you need to extract
+- Each <tr> (table row) represents one data record
+- Each <td> (table cell) contains a value (category name, number, dollar amount, etc.)
+- Parse ALL rows - do not skip any
+- For multi-column tables, match headers to data columns
+- Extract numbers from cells (remove $, commas, and convert to integers/floats)
+- For tables with years as columns (2024, 2023, 2022), extract data for each year
+
+For each page, extract COMPLETE data from HTML tables:
+- Tables with fraud statistics (category, loss amount, victim count) - extract ALL rows from HTML, not just top 5
+- Financial figures (dollar amounts, losses, totals) - parse from HTML table cells, extract ALL amounts
+- Fraud type classifications - extract ALL categories from ALL HTML tables
+- Victim demographics (age groups, counts) - extract ALL demographics from HTML tables
+- State-by-state data (if HTML tables show state information) - extract ALL states from HTML table rows
+- Trend/comparison data - if HTML tables show multiple years (e.g., 2024, 2023, 2022), extract data for ALL years and ALL categories
+- Year/period information - extract all years mentioned in HTML table headers or content
+
+IMPORTANT: 
+- If the OCR output only shows an image reference (like "![](images/0.jpg)"), note this in the content_summary
+- If you see HTML tables (<table> tags), you MUST parse them and extract the data - do not skip them
+- The data is in HTML format - parse the HTML structure to extract the actual values
+
+EXAMPLE: If you see HTML like this:
+<table><tr><td>Crime Type</td><td>Count</td></tr><tr><td>Phishing/Spoofing</td><td>23,252</td></tr><tr><td>Tech Support</td><td>16,777</td></tr></table>
+
+You should extract:
+- Row 1: category="Phishing/Spoofing", victim_count=23252
+- Row 2: category="Tech Support", victim_count=16777
+
+Parse EVERY row in EVERY table - extract ALL the data!
 
 OCR Data:
 {json.dumps(ocr_json_data, indent=2)}
@@ -163,17 +197,24 @@ Return a JSON object with this structure:
   "overall_summary": "concise summary of key fraud statistics"
 }}
 
-CRITICAL INSTRUCTIONS - RESPONSE SIZE LIMITS:
+CRITICAL INSTRUCTIONS - EXTRACT ALL DATA FROM HTML TABLES:
 - DO NOT include "raw_text" field - omit it completely
-- PRIORITIZE STATE DATA: If you see tables with "State", "Rank", "Count", or "Loss" columns, extract ALL state data even if you must truncate other pages
-- For pages WITHOUT state data: Use very brief summaries, extract only top 5 categories, skip detailed tables
-- For pages WITH state data: Extract ALL states completely - this is the highest priority
-- Extract actual numbers from tables. Parse dollar amounts as numbers (remove $ and commas).
+- PARSE HTML TABLES: The OCR output contains HTML tables (<table><tr><td>...</td></tr></table>) - you MUST parse these and extract ALL data
+- EXTRACT ALL TABLES: Extract complete data from ALL HTML tables on ALL pages - parse every <tr> row and <td> cell, do not skip or truncate any tables
+- EXTRACT ALL METRICS: Extract losses by category, victim counts, state data, trend data (multi-year comparisons), and any other numerical metrics from HTML tables
+- EQUAL PRIORITY: All data types are equally important - crime type tables, loss tables, state tables, trend comparisons, etc.
+- For each page with HTML tables, extract:
+  * ALL rows from ALL HTML tables (parse every <tr>, do not limit to top 5 or top 10)
+  * ALL categories with their counts and losses (from HTML table cells)
+  * ALL states with their incidents and losses (from HTML table rows)
+  * ALL years in trend/comparison tables (from HTML table headers or columns)
+- Extract actual numbers from HTML table cells. Parse dollar amounts as numbers (remove $ and commas).
 - If OCR shows image references, just note it in content_summary.
+- If you see HTML table structure, parse it - the data is there in the HTML, extract it!
 - Return ONLY valid JSON, no markdown, no code blocks, no explanatory text.
 - Ensure all JSON strings are properly escaped.
 - Do not include trailing commas.
-- If you must truncate, ensure state data pages (usually last pages) are complete."""
+- IMPORTANT: Extract complete data from pages 2-7 (crime types, losses, trends, states) - parse ALL HTML tables, do not skip any pages or truncate any tables."""
 
     max_retries = 3
     base_delay = 2
@@ -182,10 +223,11 @@ CRITICAL INSTRUCTIONS - RESPONSE SIZE LIMITS:
         try:
             # Use response_format to force JSON output (if supported)
             try:
-                # Try using GenerationConfig for JSON mode
+                # Try using GenerationConfig for JSON mode with increased output tokens
                 generation_config = {
                     "response_mime_type": "application/json",
                     "temperature": 0.1,
+                    "max_output_tokens": 32768,  # Allow large JSON responses (32K tokens)
                 }
                 response = model.generate_content(
                     prompt, 
@@ -194,7 +236,15 @@ CRITICAL INSTRUCTIONS - RESPONSE SIZE LIMITS:
             except (TypeError, AttributeError, ValueError) as config_err:
                 # Fallback if response_format not supported or model doesn't support it
                 print(f"Note: JSON mode not available, using standard mode")
-                response = model.generate_content(prompt)
+                # Try with max_output_tokens in standard mode
+                try:
+                    generation_config = {
+                        "temperature": 0.1,
+                        "max_output_tokens": 32768,
+                    }
+                    response = model.generate_content(prompt, generation_config=generation_config)
+                except:
+                    response = model.generate_content(prompt)
             formatted_output = response.text.strip()
             
             # Try multiple JSON extraction strategies
@@ -272,77 +322,77 @@ CRITICAL INSTRUCTIONS - RESPONSE SIZE LIMITS:
                                 return json.dumps(parsed, indent=2)
                         except (ImportError, Exception):
                             pass  # jsonrepair not available or failed
-                    # Try to extract what we can from partial JSON
-                    if attempt == max_retries - 1:
-                        print("Attempting to extract partial data from truncated JSON...")
-                        try:
-                            # Try to find complete page objects
-                            import re as regex_module
-                            # Find all complete page objects (those that are properly closed)
-                            page_pattern = r'"page_number":\s*\d+[^}]*"raw_text":\s*"[^"]*"\s*\}'
-                            pages_found = regex_module.findall(page_pattern, json_str)
-                            
-                            # Try a simpler approach: find the last complete structure
-                            # Look for the last complete page
-                            last_complete_page_idx = json_str.rfind('"page_number"')
-                            if last_complete_page_idx != -1:
-                                # Find where this page ends
-                                page_start = json_str.rfind('{', 0, last_complete_page_idx)
-                                # Try to find a matching closing brace
-                                brace_count = 0
-                                page_end = -1
-                                for i in range(page_start, len(json_str)):
-                                    if json_str[i] == '{':
-                                        brace_count += 1
-                                    elif json_str[i] == '}':
-                                        brace_count -= 1
-                                        if brace_count == 0:
-                                            page_end = i + 1
-                                            break
+                        
+                        # Try to extract what we can from partial JSON
+                        if attempt == max_retries - 1:
+                            print("Attempting to extract partial data from truncated JSON...")
+                            try:
+                                # Try to find complete page objects
+                                import re as regex_module
+                                # Find all complete page objects (those that are properly closed)
+                                page_pattern = r'"page_number":\s*\d+[^}]*"raw_text":\s*"[^"]*"\s*\}'
+                                pages_found = regex_module.findall(page_pattern, json_str)
                                 
-                                if page_end > page_start:
-                                    # Extract everything up to and including the last complete page
-                                    partial_json = json_str[:page_end]
-                                    # Close the pages array and overall structure
-                                    partial_json += '], "overall_metrics": {"total_loss": null, "total_victims": null, "year": ' + str(extract_year_from_filename(ocr_json_data.get("filename", ""))) + ', "top_fraud_categories": [], "losses_by_category": [], "losses_by_state": []}, "overall_summary": "Partial extraction due to response truncation"}'
+                                # Try a simpler approach: find the last complete structure
+                                # Look for the last complete page
+                                last_complete_page_idx = json_str.rfind('"page_number"')
+                                if last_complete_page_idx != -1:
+                                    # Find where this page ends
+                                    page_start = json_str.rfind('{', 0, last_complete_page_idx)
+                                    # Try to find a matching closing brace
+                                    brace_count = 0
+                                    page_end = -1
+                                    for i in range(page_start, len(json_str)):
+                                        if json_str[i] == '{':
+                                            brace_count += 1
+                                        elif json_str[i] == '}':
+                                            brace_count -= 1
+                                            if brace_count == 0:
+                                                page_end = i + 1
+                                                break
                                     
-                                    try:
-                                        parsed = json.loads(partial_json)
-                                        if "pages" in parsed:
-                                            print(f"Successfully extracted {len(parsed.get('pages', []))} complete pages from truncated response")
-                                            return json.dumps(parsed, indent=2)
-                                    except:
-                                        pass
-                        except Exception as extract_err:
-                            print(f"Could not extract partial data: {extract_err}")
-                    
-                    # Save error for debugging
-                    if attempt == max_retries - 1:
-                        try:
-                            print(f"JSON parsing error at line {e.lineno}, col {e.colno}: {e.msg}")
-                        except:
-                            print(f"JSON parsing error: {str(e)}")
-                        print(f"First 500 chars of response: {formatted_output[:500]}")
-                        print(f"Last 500 chars of response: {formatted_output[-500:]}")
-                        # Try to extract what we can
-                        try:
-                            # Find the error position and try to fix it
-                            error_pos = e.pos if hasattr(e, 'pos') else None
-                            if error_pos:
-                                print(f"Error at position {error_pos} in JSON string")
-                                # Try to fix common issues around error position
-                                if error_pos and error_pos < len(json_str):
-                                    # Try removing problematic characters around error
-                                    fixed_json = json_str[:error_pos] + json_str[error_pos+1:]
-                                    try:
-                                        parsed = json.loads(fixed_json)
-                                        if "pages" in parsed:
-                                            print("Fixed JSON by removing problematic character")
-                                            return json.dumps(parsed, indent=2)
-                                    except:
-                                        pass
-                        except:
-                            pass
+                                    if page_end > page_start:
+                                        # Extract everything up to and including the last complete page
+                                        partial_json = json_str[:page_end]
+                                        # Close the pages array and overall structure
+                                        partial_json += '], "overall_metrics": {"total_loss": null, "total_victims": null, "year": ' + str(extract_year_from_filename(ocr_json_data.get("filename", ""))) + ', "top_fraud_categories": [], "losses_by_category": [], "losses_by_state": []}, "overall_summary": "Partial extraction due to response truncation"}'
+                                        
+                                        try:
+                                            parsed = json.loads(partial_json)
+                                            if "pages" in parsed:
+                                                print(f"Successfully extracted {len(parsed.get('pages', []))} complete pages from truncated response")
+                                                return json.dumps(parsed, indent=2)
+                                        except:
+                                            pass
+                            except Exception as extract_err:
+                                print(f"Could not extract partial data: {extract_err}")
+                            
+                            # Save error for debugging
+                            try:
+                                print(f"JSON parsing error at line {e.lineno}, col {e.colno}: {e.msg}")
+                            except:
+                                print(f"JSON parsing error: {str(e)}")
+                            print(f"First 500 chars of response: {formatted_output[:500]}")
+                            print(f"Last 500 chars of response: {formatted_output[-500:]}")
+                            # Try to extract what we can
+                            try:
+                                # Find the error position and try to fix it
+                                error_pos = e.pos if hasattr(e, 'pos') else None
+                                if error_pos:
+                                    print(f"Error at position {error_pos} in JSON string")
+                                    # Try to fix common issues around error position
+                                    if error_pos and error_pos < len(json_str):
+                                        # Try removing problematic characters around error
+                                        fixed_json = json_str[:error_pos] + json_str[error_pos+1:]
+                                        try:
+                                            parsed = json.loads(fixed_json)
+                                            if "pages" in parsed:
+                                                print("Fixed JSON by removing problematic character")
+                                                return json.dumps(parsed, indent=2)
+                                        except:
+                                            pass
+                            except Exception as fix_err:
+                                print(f"Could not fix JSON error: {fix_err}")
             
             # If all strategies failed, continue to next attempt or fallback
             if attempt < max_retries - 1:
