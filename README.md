@@ -157,10 +157,10 @@ After running 'deepseekOcr.py', the OCR produces raw JSON text:
 #### Key Findings (Financial Losses by Age Group) 
 This chart shows the financial losses from fraud are distributed across different age groups. 
 
-- ** Adults over 60 suffer the highest total losses, which exceeds $1.5 billion.
-- ** Ages 50-59 and 40-49 also experience significant losses, with total losses of $1 billion.
-- ** Those younger age groups lose less, showing a huge drop in total financial loss.
-- ** This pattern shows that older adults are more targeted by high-dollar scams.
+- Adults over 60 suffer the highest total losses, which exceeds $1.5 billion.
+- Ages 50-59 and 40-49 also experience significant losses, with total losses of $1 billion.
+- Those younger age groups lose less, showing a huge drop in total financial loss.
+- This pattern shows that older adults are more targeted by high-dollar scams.
 
 <img width="700" height="625" alt="step4" src="https://github.com/user-attachments/assets/a4825e0f-08ab-448c-ac5d-9c482035cf27" />
 
