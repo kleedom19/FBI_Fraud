@@ -125,7 +125,7 @@ FBI-Fraud extracts and organizes messy FBI fraud PDFs to highlight trends and co
 ### Code Snippet / Key Findings
 
 #### 1. Sample input PDF
-Here is an example snippet from 'page28.pdf' showing crime types reported by individuals 60+
+Here is an example snippet from 'page28.pdf' showing crime types reported by individuals 60+ and also including a screenshot of the table:
 
 | Crime Type                         | Count  |
 |-----------------------------------|--------|
@@ -137,6 +137,9 @@ Here is an example snippet from 'page28.pdf' showing crime types reported by ind
 | Real Estate                         | 1,765  |
 | Lottery/Sweepstakes/Inheritance    | 1,711  |
 | Harassment/Stalking                 | 696    |
+
+<img width="568" height="230" alt="step1" src="https://github.com/user-attachments/assets/64e3057c-a8d8-43d4-a40e-455eebabf4db" />
+
 
 #### OCR Output 
 After running 'deepseekOcr.py', the OCR produces raw JSON text: 
