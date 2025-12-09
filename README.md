@@ -155,5 +155,7 @@ After running 'deepseekOcr.py', the OCR produces raw JSON text:
 }
 ```
 #### Key Findings (Financial Losses by Age Group) 
+This chart shows the financial losses from fraud are distributed across different age groups. 
+
 <img width="700" height="625" alt="step4" src="https://github.com/user-attachments/assets/a4825e0f-08ab-448c-ac5d-9c482035cf27" />
 
