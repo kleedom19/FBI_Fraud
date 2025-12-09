@@ -167,3 +167,6 @@ This chart shows the financial losses from fraud are distributed across differen
 
 <img width="700" height="625" alt="step4" src="https://github.com/user-attachments/assets/a4825e0f-08ab-448c-ac5d-9c482035cf27" />
 
+## Importance 
+
+In conclusion, our project makes it easier to work with messy FBI fraud PDF’s which are full of charts and hard to scrape. Using OCR and Gemini API, our tool cleans up the data, organizes it, and turns it into clear tables and visuals. This way, we can spot trends, common scams, and patterns in fraud. Overall, our project is a way to turn complicated reports into useful insights for understanding and preventing fraud. 
