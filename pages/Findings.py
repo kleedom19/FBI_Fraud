@@ -189,13 +189,22 @@ with col4:
     else:
         st.warning("No victim count data available.")
 
+st.markdown("<div class='soft-subheader'>Analysis Of Claims and Fraud Loss 2019-2020</div>", unsafe_allow_html=True)
+st.write("""
+Between both of the charts, we can see that those over 60 are the highest. This means they’re the most common to get tricked into fraud situations, which in turn causes the most money loss. 
+
+An interesting observation is how those under 20 have a slightly higher total financial loss than 20-30; Yet, when we look at the amount of victims for those under 20, it is significantly lower than any of the other age groups. 
+         
+By comparing these two statistics, it would be safe to assume that those under 20 are prone to significantly larger amounts of fraud financially per victim compared to other age groups.
+
+
+""")
+
 st.markdown("---")
-
-
 
 st.markdown("<div class='soft-subheader'>Fraud Incidents by State</div>", unsafe_allow_html=True)
 st.markdown("""
-    This graphs ranks U.S. states by their total financial loss in 2024.
+    This graphs ranks U.S. states by their total financial loss in 2024 for adults 60 and older.
 
     California stands out with over \$800 million in loss due to fraud. Texas follows behind with \$500 million and Florida in third with $390 million.
 
@@ -211,6 +220,16 @@ else:
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("---")
+
+
+st.markdown("<div class='soft-subheader'>Conclusion</div>", unsafe_allow_html=True)
+st.write("""
+Our project addresses the challenge of working with PDFs containing fraud data stored in charts, which can be difficult to scrape, and streamlines this process. Through OCR and Gemini API, our tool cleans, structures, and converts it into clear tables and visuals. This way, we can spot trends, common scams, and patterns in fraud. 
+         
+Ultimately, our project is a way to turn complicated reports into useful insights for understanding and preventing fraud. 
+
+
+""")
 
 # Footer
 st.markdown("---")

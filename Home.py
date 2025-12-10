@@ -1,4 +1,5 @@
 import streamlit as st
+from PIL import Image
 
 st.set_page_config(layout="wide", page_title="Homepage", page_icon="📊")
 
@@ -93,7 +94,15 @@ This app introduces our project which aims to build a simple OCR to Gemini pipel
 """)
 
 st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
+
 st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("<div class='soft-subheader'>Business Solution</div>", unsafe_allow_html=True)
+st.write("""      
+While exploring FBI documents, we discovered these financial data documents were comprised of mostly charts stored in PDFs, which is a format known for being difficult to scrape. Research showed that banks and financial institutions commonly use PDFs for their reports too.
+
+To address this challenge, we created a tool that simplifies scraping these documents.
+""")
 
 # --- TWO COLUMNS ---
 col1, col2 = st.columns(2)
@@ -106,24 +115,21 @@ with col1:
 
     st.markdown("<div class='soft-subheader'>Project Summary</div>", unsafe_allow_html=True)   
     st.write("""
-    We studied data published by the Federal Bureau of Investigation (FBI) in their Annual Internet Crime Reports. These PDF's contain much valuable information, but we came across issues properly webscraping data formatted in charts. This led us to search for a solution. Deepseek recently released their Optical Character Recognition (OCR) model that specicalizes in shrinking the amount of vision tokens required per PDF page, effectivly lowering the cost of runs while maintaining accuracy.
+    We studied data published by the Federal Bureau of Investigation (FBI) in their Annual Internet Crime Reports. These PDF's contain much valuable information, but we came across issues properly webscraping data formatted in charts. This led us to search for a solution. 
+    
+    Deepseek recently released their Optical Character Recognition (OCR) model that specicalizes in shrinking the amount of vision tokens required per PDF page, effectivly lowering the cost of runs while maintaining accuracy.
              """)
     
 
 with col2:
-    st.markdown("<div class='soft-subheader'>Business Solution</div>", unsafe_allow_html=True)
-    st.write("""
-    While we explored FBI documents, we discovered the financial data documents were mostly charts in PDFs, which are known for being more difficult to scrape. After further research, it was discovered that banking documents, such as financial reports, are typically published in this format. 
-             
-    Our team set out to create a tool to aid in the scraping process of these documents.
-    """)
-
     st.markdown("<div class='soft-subheader'>Our Goal</div>", unsafe_allow_html=True)
     st.write("""
     We focus on fraud-related document analysis using OCR and Gemini to clean,
     structure, and visualize FBI fraud reports. Our goal is to efficiently extract data stored in PDFs to help identify trends,
     common scams, and fraud patterns affecting consumers.
 """)
+    image = Image.open('imagesForSL/FBI-Logo.jpg')
+    st.image(image)
 
 
 st.write("""

@@ -111,7 +111,7 @@ with col1:
         ```bash
         uv run ocr_api.py .\\your-file.pdf
         ```
-        This calls Modal to coldstart (this may take a minute) and the PDF will run through the OCR. The Markdown output is returned in a JSON file under the name specified in the code into the same folder.
+        This calls Modal to coldstart, and the PDF will run through the OCR. The Markdown output is returned in a JSON file under the name specified in the code into the same folder.
     
              
         To the right is an example of a PDF we scraped containing elder fraud data from 2022 - 2024.
