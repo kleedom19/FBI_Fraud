@@ -169,4 +169,9 @@ This chart shows the financial losses from fraud are distributed across differen
 
 ## Importance 
 
-In conclusion, our project makes it easier to work with messy FBI fraud PDF’s which are full of charts and hard to scrape. Using OCR and Gemini API, our tool cleans up the data, organizes it, and turns it into clear tables and visuals. This way, we can spot trends, common scams, and patterns in fraud. Overall, our project is a way to turn complicated reports into useful insights for understanding and preventing fraud. 
+In conclusion, our project makes it easier to work with messy FBI fraud PDF’s which are full of charts and hard to scrape. Using OCR and Gemini API, our tool cleans up the data, organizes it, and turns it into clear tables and visuals. This way, we can spot trends, common scams, and patterns in fraud. Overall, our project is a way to turn complicated reports into useful insights for understanding and preventing fraud.
+
+
+## View Streamlit
+
+https://fraudapi.streamlit.app/
