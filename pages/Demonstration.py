@@ -4,6 +4,7 @@ import supabase
 from supabase import create_client, Client
 from st_supabase_connection import SupabaseConnection
 import base64
+import streamlit as st
 from fraud_visualizations import (
     get_all_analyses,
     get_summary_stats,
@@ -20,6 +21,20 @@ load_dotenv()
 import os
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
+
+# Load data with caching
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def load_analyses():
+    """Load all analyses from Supabase."""
+    return get_all_analyses()
+
+# Fetch data
+with st.spinner("Loading data from Supabase..."):
+    all_analyses = load_analyses()
+
+if not all_analyses:
+    st.error("No data found in Supabase. Please run `analyze_ocr.py` first to process OCR files.")
+    st.stop()
 
 st.set_page_config(layout="wide", page_title="Demonstration", page_icon="📊")
 
@@ -125,30 +140,21 @@ st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ------ STEP 2 ------
-col3, col4 = st.columns([1,1])
+st.markdown("<div class='soft-subheader'>2) Use Gemini to convert Markdown into a pandas DataFrame</div>", unsafe_allow_html=True)
+st.write("""
+Our OCR pipeline can run as one unified command from PDF → OCR → Gemini → Supabase, or it can operate as two separate phases for documents containing security-sensitive information.
+""")
 
-with col3:
-    # ADD IMAGE
-    st.image("imagesForSL/gemini.png", width=550, caption="Snippet of the Gemini code")
-
-with col4:
-    st.markdown("<div class='soft-subheader'>2) Use Gemini to convert Markdown into a pandas DataFrame</div>", unsafe_allow_html=True)
-    st.write("""
-    Our OCR pipeline can run as one unified command from PDF → OCR → Gemini → Supabase, or it can operate as two separate phases for documents containing security-sensitive information.
-    """)
-    
-    st.markdown ("""
-    __Key Files__:
-    - `client_pipeline.py`: Client script that orchestrates the complete pipeline
-     -`analyze_ocr.py`: Standalone script to analyze OCR output with Gemini and save to Supabase - no Modal required.
-    - `analyze_server.py`: Standalone FastAPI server for Gemini analysis and Supabase storage - no Modal required.
-    - `gemini_supabase.py`: Shared module for Gemini analysis and Supabase storage.
-    """)
-
-
+st.markdown ("""
+__Key Files__:
+- `client_pipeline.py`: Client script that orchestrates the complete pipeline
+    -`analyze_ocr.py`: Standalone script to analyze OCR output with Gemini and save to Supabase - no Modal required.
+- `analyze_server.py`: Standalone FastAPI server for Gemini analysis and Supabase storage - no Modal required.
+- `gemini_supabase.py`: Shared module for Gemini analysis and Supabase storage.
+""")
+st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 st.markdown("""
-**Organizations may choose to**:
+**You may choose to**:
 
 - Run the full pipeline automatically (`client_pipeline.py`)
     * Fully hands-off once the PDF is inputted
@@ -156,16 +162,13 @@ st.markdown("""
     * Results are generated and saved the same way each time
 
             
-- Run the OCR using Modal (`ocr_api.py`), then send the Markdown into their own private LLM using `analyze_ocr.py`
-    * Ideal for documents with sensistive data to comply with company regulations
-    * Can swap to prefered LLM for structuring
-    * Allows for clarity in how the OCR scraped the data into JSON files (can view raw Markdown)
+- Run in Two Steps
+    * Run the OCR using `ocr_api.py` to genereate raw JSON file output
+    * Use `analyze_ocr.py` to perform the Gemini analysis and interact with the OCR results via command line
          
             
-- Run the OCR using Modal (`ocr_api.py`), then send the Markdown to the analysis API (`analyze_sever.py`). 
-    * Can run on a person's individual system, ensuring all data stays only within your network should you utilize a different OCR model
-    * Built in cache review saves on cost of LLM tokens
-    * Can update prompts to suit the exact data you're working with
+- Run in Two Steps via API 
+    * Has the same functionality as above, but was created in the form of API endpoints for easier integration for future scalability
 """)
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -188,12 +191,13 @@ with col5:
         The newly cleaned and formatted data is stored in Supabase tables to be called for further analysis. Once the data is stored, users do not have to run the same files again, which saves on token usage, and it is available to any team member to call on their desired platform.
         
         The raw OCR Markdown data is also saved into tables, allowing for it to be rerun through different queries in Gemini as needed. This adds an extra layer of clarity in how the cleaned data was dervied, as users can view the exact data as it was scraped by the OCR.   
-             
-        The 'key_metrics' column has a Gemini generated one-sentence summary of its findings within the data scraped, including total loses, total victim count, top fraud categories, and the year the data was collected. 
+        """)
+    
+st.markdown("""
+    The `key_metrics` column has a Gemini generated one-sentence summary of its findings within the data scraped, including total loses, total victim count, top fraud categories, and the year the data was collected. 
 
-        The 'keywords' column displays the most commonly found key words in documents relating to fraud.   
-         
-              """)
+    The `keywords` column displays the most commonly found key words in documents relating to fraud.   
+""")
 
 
 with col6:
@@ -206,13 +210,16 @@ st.markdown('</div>', unsafe_allow_html=True)
 col7, col8 = st.columns([1,1])
 
 with col7:
-    # ADD IMAGE
-    st.image("imagesForSL/step4.png", width=550, caption="A graph showing total financial loss by age group.")
+    age_loss_fig = create_losses_by_age_group_chart(all_analyses)
+    if age_loss_fig:
+        st.plotly_chart(age_loss_fig, use_container_width=True)
+    else:
+        st.warning("No age group data available.")
 
 with col8:
     st.markdown("<div class='soft-subheader'>4) Create Visualizations and Analyze</div>", unsafe_allow_html=True)
     st.write("""
-        Utilizing the tables in Supabase, users can call the different tables to display their data on their prefered platform. 
+        Utilizing the tables in Supabase, users can call the data to summarize counts, perform a statistical analysis, pull the data into dashboards that update in real time as data is entered, and more.
         
-        An example of this final step can be found on the 'Findings' tab to the left.
+        We show how you can call this data to create visulizations on the 'Findings' tab.
     """)

@@ -13,4 +13,6 @@ dependencies = [
     "plotly>=5.0.0",
     "matplotlib>=3.7.0",
     "streamlit>=1.28.0",
+    "image>=1.5.33",
+    "modal>=1.2.4",
 ]
