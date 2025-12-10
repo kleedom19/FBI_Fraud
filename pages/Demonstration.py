@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import supabase
 from supabase import create_client, Client
-import streamlit.components.v1 as components
+from st_supabase_connection import SupabaseConnection
+import base64
 import streamlit as st
 from fraud_visualizations import (
     get_all_analyses,
@@ -120,12 +121,20 @@ with col1:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
-    file_id = "1oGMeHziBP8nPeoCch2S-YZHAfujdGo1o"
-    components.iframe(
-        "https://drive.google.com/file/d/1oGMeHziBP8nPeoCch2S-YZHAfujdGo1o/view?usp=sharing",
-        height=600,
-        scrolling=True
-        )   
+
+    with open("imagesForSL/60AndUp.pdf", "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode("utf-8")
+
+    pdf_display = f"""
+    <iframe 
+        src="data:application/pdf;base64,{base64_pdf}" 
+        width="100%" 
+        height="600px" 
+        style="border: none;"
+    ></iframe>
+    """
+
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
