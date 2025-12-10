@@ -120,11 +120,12 @@ with col1:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
-    # Upload to Google Drive, get share link
+    file_id = "1oGMeHziBP8nPeoCch2S-YZHAfujdGo1o"
     components.iframe(
         "https://drive.google.com/file/d/1oGMeHziBP8nPeoCch2S-YZHAfujdGo1o/view?usp=sharing",
-        height=600
-    )
+        height=600,
+        scrolling=True
+        )   
 
 st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
