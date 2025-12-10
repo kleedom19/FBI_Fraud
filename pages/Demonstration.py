@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import supabase
 from supabase import create_client, Client
-import base64
+import streamlit.components.v1 as components
 import streamlit as st
 from fraud_visualizations import (
     get_all_analyses,
@@ -120,17 +120,11 @@ with col1:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
-    with open("imagesForSL/60AndUp.pdf", "rb") as pdf_file:
-        PDFbyte = pdf_file.read()
-
-    st.download_button(
-        label="📄 Download PDF to View",
-        data=PDFbyte,
-        file_name="60AndUp.pdf",
-        mime='application/pdf',
-        use_container_width=True
+    # Upload to Google Drive, get share link
+    components.iframe(
+        "https://drive.google.com/file/d/1oGMeHziBP8nPeoCch2S-YZHAfujdGo1o/view?usp=sharing",
+        height=600
     )
-
 
 st.markdown("<div class='thin-line'></div>", unsafe_allow_html=True)
 
