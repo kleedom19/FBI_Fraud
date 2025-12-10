@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import supabase
 from supabase import create_client, Client
-from st_supabase_connection import SupabaseConnection
 import base64
 import streamlit as st
 from fraud_visualizations import (
